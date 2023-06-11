@@ -68,7 +68,7 @@ cdr is a function responsible for tracking data in the site.")
   (org-entry-put (point) org-web-track--propname-url url)
   (org-web-track-update))
 
-(defun org-web-track-get-values (url &optional sync on-success on-fail &rest args)
+(defun org-web-track-get-values (url &optional sync on-success on-fail marker)
   "Get values by accessing URL."
   (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
         (request-backend
@@ -78,7 +78,7 @@ cdr is a function responsible for tracking data in the site.")
         (values nil))
     (unless tracker-def
       (and (functionp on-fail)
-           (progn (apply on-fail args)
+           (progn (apply on-fail marker)
                   (user-error "No tracker available for this entry"))))
     (request url
       :sync sync
@@ -119,9 +119,10 @@ cdr is a function responsible for tracking data in the site.")
        (lambda (&key data &allow-other-keys)
          (if (seq-some 'stringp values)
              (and (functionp on-success)
-                  (apply on-success values args))
+                  (or (funcall on-success marker values)
+                      (org-web-track-remove-latest-log marker)))
            (and (functionp on-fail)
-                (apply on-fail args))
+                (apply on-fail marker))
            (message "No value available at the end of tracker appliance")))))
     (and sync
          values)))
@@ -159,7 +160,7 @@ SELECTOR is supposed to be a function that take a json object."
           (symbolp selector))
       (funcall selector json-obj)))))
 
-(defun org-web-track-update ()
+(defun org-web-track-update-async ()
   "Update tracking entry at point."
   (interactive)
   (let ((url (org-entry-get (point) org-web-track--propname-url))
@@ -182,27 +183,30 @@ SELECTOR is supposed to be a function that take a json object."
              #'org-web-track-remove-latest-log
              (list marker)))))
 
-(defun org-web-track-interpolate-entry (updates &rest args)
-  "Propagate UPDATES to the entry in consequence of getting values in success."
-  (let* ((marker (car args))
-         (values (org-entry-get-multivalued-property marker org-web-track--propname-value)))
+(defun org-web-track-interpolate-entry (marker updates)
+  "Propagate UPDATES to the entry in consequence of getting values in success.
+
+Return non-nil if value has changed."
+  (let ((values (org-entry-get-multivalued-property marker org-web-track--propname-value)))
     (org-entry-put marker org-web-track--propname-date (format-time-string (org-time-stamp-format t t)))
     (cl-labels ((update-value ()
                   (apply #'org-entry-put-multivalued-property marker org-web-track--propname-value updates))
                 (update-last-value ()
                   (apply #'org-entry-put-multivalued-property marker org-web-track--propname-last-value values)))
       (if (not values)
-          (update-value)
+          (progn (update-value)
+                 nil)
         (if (not (equal updates values))
-            (progn (update-value) (update-last-value))
-          (org-web-track-remove-latest-log marker))))
-    (message "Values have been updated.")))
+            (progn (update-value)
+                   (update-last-value)
+                   t)
+          nil)))))
 
-(defun org-web-track-remove-latest-log (&rest args)
+(defun org-web-track-remove-latest-log (marker)
   "Remove latest value change record so as to cancel proactive logging at MARKER."
-  (org-with-point-at (car args)
-    (org-with-wide-buffer
-     (org-save-outline-visibility t
+  (org-with-point-at marker
+    (org-save-outline-visibility t
+      (org-with-wide-buffer
        (org-back-to-heading t)
        (org-fold-show-all '(drawers))
        (let* ((case-fold-search t)
@@ -302,23 +306,21 @@ SELECTOR is supposed to be a function that take a json object."
   "Return clean print of current value title in column view is COLUMN-TITLE."
   (when (string= column-title
                  (get 'org-web-track--propname-value 'label))
-    (save-excursion
-      (let ((multivalues (org-entry-get-multivalued-property (point) org-web-track--propname-value))
-            (last-multivalues (org-entry-get-multivalued-property (point) org-web-track--propname-last-value)))
-        (string-join
-         (cl-mapcar #'org-web-track-changes
-                    multivalues
-                    (or last-multivalues
-                        (make-list (length multivalues) nil)))
-         ", ")))))
+    (org-web-track-changes (org-entry-get-multivalued-property (point) org-web-track--propname-value)
+                           (org-entry-get-multivalued-property (point) org-web-track--propname-last-value))))
 
-(defun org-web-track-changes (value last-value)
+(defun org-web-track-changes (values last-values)
   "Return a string which represents VALUE along with LAST-VALUE in case of non-nil."
-  (concat (and (stringp value)
-               value)
-          (and (stringp last-value)
-               (not (string= value last-value))
-               (format " (%s)" last-value))))
+  (string-join (cl-mapcar (lambda (val last-val)
+                            (concat (and (stringp val)
+                                         val)
+                                    (and (stringp last-val)
+                                         (not (string= val last-val))
+                                         (format " (%s)" last-val))))
+                          values
+                          (or last-values
+                              (make-list (length values) nil)))
+               ", "))
 
 (defvar org-web-track-columns-format
   (format "%%12ITEM %%%s(%s) %%%s(%s)"
@@ -327,6 +329,46 @@ SELECTOR is supposed to be a function that take a json object."
           org-web-track--propname-date
           (get 'org-web-track--propname-date 'label))
   "")
+
+(defun org-web-track-agenda-view ()
+  "docstring"
+  (interactive)
+  (when (require 'org-colview nil t)
+    (let ((org-agenda-files org-web-track-files)
+          (org-columns-modify-value-for-display-function
+           'org-web-track-display-values)
+          (org-overriding-columns-format org-web-track-columns-format)
+          (org-agenda-view-columns-initially t))
+      (org-tags-view nil (format "%s={.+}" org-web-track--propname-url)))))
+
+(defcustom org-web-track-files (org-agenda-files) "docstring"
+  :type '(repeat :tag "List of files" file))
+(defvar org-web-track-grant-update t "docstring")
+
+(defun org-web-track-update-all (&optional check-only)
+  ""
+  (interactive)
+  (let ((org-web-track-grant-update (not check-only)))
+    (delq nil (org-map-entries 'org-web-track-update
+                               (format "%s={.+}" org-web-track--propname-url)
+                               org-web-track-files))))
+
+(defun org-web-track-update ()
+  "docstring"
+  (interactive)
+  (let* ((org-trust-scanner-tags t)
+         (track-url
+          (org-entry-get (point) org-web-track--propname-url))
+         (values-recorded
+          (org-entry-get-multivalued-property (point) "TRACK_VALUE"))
+         (values
+          (ignore-errors (org-web-track-get-values track-url t))))
+    (when org-web-track-grant-update
+      (org-web-track-interpolate-entry (point-marker) values))
+    (unless (equal values values-recorded)
+      (cons (and (save-excursion (org-back-to-heading t))
+                 (point-marker))
+            values))))
 
 (defun org-web-track-test-tracker (tracker url)
   "Return a value, which is a result of applying TRACKER for contents at URL.
