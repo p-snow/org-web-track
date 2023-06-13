@@ -46,7 +46,7 @@
   "Property name for last value.")
 (put 'org-web-track--propname-last-value 'label "LAST")
 
-(defvar org-web-track--propname-url "TRACK_URL"
+(defvar org-web-track-url-property "WEB_TRACK_URL"
   "Property name for tracking URL.")
 
 (defvar org-web-track--propname-date "TRACK_DATE"
@@ -65,7 +65,7 @@ cdr is a function responsible for tracking data in the site.")
 (defun org-web-track-initialize (url)
   "Initialize the org entry at point as a web tracking item by putting URL."
   (interactive (list (read-string "URL: ")))
-  (org-entry-put (point) org-web-track--propname-url url)
+  (org-entry-put (point) org-web-track-url-property url)
   (org-web-track-update))
 
 (defun org-web-track-get-values (url &optional sync on-success on-fail marker)
@@ -163,10 +163,10 @@ SELECTOR is supposed to be a function that take a json object."
 (defun org-web-track-update-async ()
   "Update tracking entry at point."
   (interactive)
-  (let ((url (org-entry-get (point) org-web-track--propname-url))
+  (let ((url (org-entry-get (point) org-web-track-url-property))
         (marker (point-marker)))
     (unless (and (not (stringp url))
-                 (error "Missing %s" org-web-track--propname-url))
+                 (error "Missing %s" org-web-track-url-property))
       (when-let ((value (org-entry-get (point) org-web-track--propname-value))
                  (date (org-entry-get (point) org-web-track--propname-date)))
         (setq-local org-log-note-headings
@@ -179,24 +179,24 @@ SELECTOR is supposed to be a function that take a json object."
                #'funcall)
              #'org-web-track-get-values
              url nil
-             #'org-web-track-interpolate-entry
+             #'org-web-track-record
              #'org-web-track-remove-latest-log
              (list marker)))))
 
-(defun org-web-track-interpolate-entry (marker updates)
-  "Propagate UPDATES to the entry in consequence of getting values in success.
+(defun org-web-track-record (marker updates)
+  "Propagate UPDATES to the entry in consequence of getting updates-in-entry in success.
 
 Return non-nil if value has changed."
-  (let ((values (org-entry-get-multivalued-property marker org-web-track--propname-value)))
+  (let ((updates-in-entry (org-entry-get-multivalued-property marker org-web-track--propname-value)))
     (org-entry-put marker org-web-track--propname-date (format-time-string (org-time-stamp-format t t)))
     (cl-labels ((update-value ()
                   (apply #'org-entry-put-multivalued-property marker org-web-track--propname-value updates))
                 (update-last-value ()
-                  (apply #'org-entry-put-multivalued-property marker org-web-track--propname-last-value values)))
-      (if (not values)
+                  (apply #'org-entry-put-multivalued-property marker org-web-track--propname-last-value updates-in-entry)))
+      (if (not updates-in-entry)
           (progn (update-value)
                  nil)
-        (if (not (equal updates values))
+        (if (not (equal updates updates-in-entry))
             (progn (update-value)
                    (update-last-value)
                    t)
@@ -339,7 +339,7 @@ Return non-nil if value has changed."
            'org-web-track-display-values)
           (org-overriding-columns-format org-web-track-columns-format)
           (org-agenda-view-columns-initially t))
-      (org-tags-view nil (format "%s={.+}" org-web-track--propname-url)))))
+      (org-tags-view nil (format "%s={.+}" org-web-track-url-property)))))
 
 (defcustom org-web-track-files (org-agenda-files) "docstring"
   :type '(repeat :tag "List of files" file))
@@ -350,7 +350,7 @@ Return non-nil if value has changed."
   (interactive)
   (let ((org-web-track-grant-update (not check-only)))
     (delq nil (org-map-entries 'org-web-track-update
-                               (format "%s={.+}" org-web-track--propname-url)
+                               (format "%s={.+}" org-web-track-url-property)
                                org-web-track-files))))
 
 (defun org-web-track-update ()
@@ -358,13 +358,13 @@ Return non-nil if value has changed."
   (interactive)
   (let* ((org-trust-scanner-tags t)
          (track-url
-          (org-entry-get (point) org-web-track--propname-url))
+          (org-entry-get (point) org-web-track-url-property))
          (values-recorded
           (org-entry-get-multivalued-property (point) "TRACK_VALUE"))
          (values
           (ignore-errors (org-web-track-get-values track-url t))))
     (when org-web-track-grant-update
-      (org-web-track-interpolate-entry (point-marker) values))
+      (org-web-track-record (point-marker) values))
     (unless (equal values values-recorded)
       (cons (and (save-excursion (org-back-to-heading t))
                  (point-marker))
