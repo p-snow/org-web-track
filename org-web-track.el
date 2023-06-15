@@ -172,7 +172,8 @@ Return non-nil if value has changed."
                     (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
                     (org-add-log-setup 'track
                                        (org-entry-get (point) org-web-track-update-property)
-                                       nil 'state update-time)))
+                                       nil 'state update-time)
+                    (run-hooks 'post-command-hook)))
                 (update-last-value ()
                   (when org-web-track-grant-update
                     (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry))))
