@@ -172,8 +172,7 @@ Return non-nil if value has changed."
                     (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
                     (org-add-log-setup 'track
                                        (org-entry-get (point) org-web-track-update-property)
-                                       nil 'state update-time)
-                    (run-hooks 'post-command-hook)))
+                                       nil 'state update-time)))
                 (update-last-value ()
                   (when org-web-track-grant-update
                     (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry))))
@@ -306,7 +305,8 @@ Return non-nil if value has changed."
   ""
   (interactive)
   (let ((org-web-track-grant-update (not check-only)))
-    (delq nil (org-map-entries 'org-web-track-update
+    (delq nil (org-map-entries (lambda ()
+                                 (funcall-interactively 'org-web-track-update))
                                (format "%s={.+}" org-web-track-url-property)
                                org-web-track-files))))
 
@@ -331,7 +331,9 @@ Note that ASYNC mode is not adequately tested."
                             #'org-web-track-get-values
                             track-url
                             (list (not async)))))
-        (org-web-track-record marker updates)))))
+        (prog1 (org-web-track-record marker updates)
+          (when (called-interactively-p)
+            (run-hooks 'post-command-hook)))))))
 
 (defun org-web-track-test-tracker (tracker url)
   "Return a value, which is a result of applying TRACKER for contents at URL.
