@@ -38,20 +38,20 @@
 (require 'enlive)
 (require 'rx)
 
-(defvar org-web-track--propname-value "TRACK_VALUE"
+(defvar org-web-track-update-property "WEB_TRACK_UPDATE"
   "Property name for value.")
-(put 'org-web-track--propname-value 'label "VALUES")
+(put 'org-web-track-update-property 'label "UPDATE")
 
-(defvar org-web-track--propname-last-value "TRACK_VALUE_LAST"
+(defvar org-web-track-prev-property "WEB_TRACK_PREV"
   "Property name for last value.")
-(put 'org-web-track--propname-last-value 'label "LAST")
+(put 'org-web-track-prev-property 'label "PREV")
 
 (defvar org-web-track-url-property "WEB_TRACK_URL"
   "Property name for tracking URL.")
 
-(defvar org-web-track--propname-date "TRACK_DATE"
+(defvar org-web-track-date-property "WEB_TRACK_DATE"
   "Property name for the date at which track value.")
-(put 'org-web-track--propname-date 'label "UPDATED AT")
+(put 'org-web-track-date-property 'label "DATE")
 
 (defvar org-web-track-update-timeout 20
   "Time out in second for accessing web site to get values.")
@@ -72,7 +72,7 @@ cdr is a function responsible for tracking data in the site.")
   "Get values by accessing URL."
   (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
         (request-backend
-         (if (interactive-p) 'curl 'url-retrieve))
+         (if (called-interactively-p) 'curl 'url-retrieve))
         (request-curl-options
          `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
         (values nil))
@@ -119,8 +119,7 @@ cdr is a function responsible for tracking data in the site.")
        (lambda (&key data &allow-other-keys)
          (if (seq-some 'stringp values)
              (and (functionp on-success)
-                  (or (funcall on-success marker values)
-                      (org-web-track-remove-latest-log marker)))
+                  (funcall on-success marker values))
            (and (functionp on-fail)
                 (apply on-fail marker))
            (message "No value available at the end of tracker appliance")))))
@@ -160,75 +159,33 @@ SELECTOR is supposed to be a function that take a json object."
           (symbolp selector))
       (funcall selector json-obj)))))
 
-(defun org-web-track-update-async ()
-  "Update tracking entry at point."
-  (interactive)
-  (let ((url (org-entry-get (point) org-web-track-url-property))
-        (marker (point-marker)))
-    (unless (and (not (stringp url))
-                 (error "Missing %s" org-web-track-url-property))
-      (when-let ((value (org-entry-get (point) org-web-track--propname-value))
-                 (date (org-entry-get (point) org-web-track--propname-date)))
-        (setq-local org-log-note-headings
-                    (append (default-value 'org-log-note-headings)
-                            `((value . ,(concat (format "Value %%-12s %s"
-                                                        date))))))
-        (org-add-log-setup 'value value nil 'state date))
-      (apply (if (interactive-p)
-                 #'funcall-interactively
-               #'funcall)
-             #'org-web-track-get-values
-             url nil
-             #'org-web-track-record
-             #'org-web-track-remove-latest-log
-             (list marker)))))
-
 (defun org-web-track-record (marker updates)
   "Propagate UPDATES to the entry in consequence of getting updates-in-entry in success.
 
 Return non-nil if value has changed."
-  (let ((updates-in-entry (org-entry-get-multivalued-property marker org-web-track--propname-value)))
-    (org-entry-put marker org-web-track--propname-date (format-time-string (org-time-stamp-format t t)))
+  (let ((updates-in-entry (org-entry-get-multivalued-property marker org-web-track-update-property))
+        (update-time (format-time-string (org-time-stamp-format t t))))
+    (setf (alist-get 'track org-log-note-headings)
+          "Record %-12s on %t")
     (cl-labels ((update-value ()
-                  (apply #'org-entry-put-multivalued-property marker org-web-track--propname-value updates))
+                  (when org-web-track-grant-update
+                    (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
+                    (org-add-log-setup 'track
+                                       (org-entry-get (point) org-web-track-update-property)
+                                       nil 'state update-time)))
                 (update-last-value ()
-                  (apply #'org-entry-put-multivalued-property marker org-web-track--propname-last-value updates-in-entry)))
+                  (when org-web-track-grant-update
+                    (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry))))
+      (when org-web-track-grant-update
+        (org-entry-put marker org-web-track-date-property update-time))
       (if (not updates-in-entry)
           (progn (update-value)
-                 nil)
+                 (cons marker updates))
         (if (not (equal updates updates-in-entry))
-            (progn (update-value)
-                   (update-last-value)
-                   t)
+            (progn (update-last-value)
+                   (update-value)
+                   (cons marker updates))
           nil)))))
-
-(defun org-web-track-remove-latest-log (marker)
-  "Remove latest value change record so as to cancel proactive logging at MARKER."
-  (org-with-point-at marker
-    (org-save-outline-visibility t
-      (org-with-wide-buffer
-       (org-back-to-heading t)
-       (org-fold-show-all '(drawers))
-       (let* ((case-fold-search t)
-              (drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
-              (re (concat (rx "- Value "
-                              "\"" (group (+ not-newline)) "\""
-                              (+ " "))
-                          org-ts-regexp-inactive))
-              (end-mkr (set-marker (mark-marker) drawer-end))
-              (latest-log nil))
-         (goto-char (match-beginning 0))
-         (while (re-search-forward re (marker-position end-mkr) t)
-           (when (or (not latest-log)
-                     (time-less-p
-                      (apply 'encode-time (parse-time-string (car latest-log)))
-                      (apply 'encode-time (parse-time-string (match-string-no-properties 2)))))
-             (setq latest-log `(,(match-string-no-properties 2) . ,(point-marker)))))
-         (and latest-log
-              (progn
-                (org-with-point-at (cdr latest-log)
-                  (kill-whole-line))
-                (org-remove-empty-drawer-at end-mkr))))))))
 
 (defun org-web-track-insert-value-change-table ()
   "Insert a table whose row represents value change at the time."
@@ -239,16 +196,14 @@ Return non-nil if value has changed."
        (org-back-to-heading t)
        (org-fold-show-all '(drawers))
        (let* ((case-fold-search t)
-              (date (org-entry-get (point) org-web-track--propname-date))
-              (values (org-entry-get-multivalued-property (point) org-web-track--propname-value))
+              (date (org-entry-get (point) org-web-track-date-property))
+              (values (org-entry-get-multivalued-property (point) org-web-track-update-property))
               (drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
-              (re (concat (rx "- Value "
+              (re (concat (rx "- Record "
                               "\"" (group (+ not-newline)) "\""
-                              (+ " "))
+                              (+ space) (opt "on") (+ space))
                           org-ts-regexp-inactive))
               (end-mkr (set-marker (mark-marker) drawer-end)))
-         (push `(,(substring date 1 -1) ,@values)
-               table-rows)
          (goto-char (match-beginning 0))
          (while (re-search-forward re (marker-position end-mkr) t)
            (push `(,(match-string-no-properties 2)
@@ -304,10 +259,10 @@ Return non-nil if value has changed."
 
 (defun org-web-track-display-values (column-title values)
   "Return clean print of current value title in column view is COLUMN-TITLE."
-  (when (string= column-title
-                 (get 'org-web-track--propname-value 'label))
-    (org-web-track-changes (org-entry-get-multivalued-property (point) org-web-track--propname-value)
-                           (org-entry-get-multivalued-property (point) org-web-track--propname-last-value))))
+  (when (string-prefix-p (get 'org-web-track-update-property 'label)
+                         column-title)
+    (org-web-track-changes (org-entry-get-multivalued-property (point) org-web-track-update-property)
+                           (org-entry-get-multivalued-property (point) org-web-track-prev-property))))
 
 (defun org-web-track-changes (values last-values)
   "Return a string which represents VALUE along with LAST-VALUE in case of non-nil."
@@ -316,18 +271,19 @@ Return non-nil if value has changed."
                                          val)
                                     (and (stringp last-val)
                                          (not (string= val last-val))
-                                         (format " (%s)" last-val))))
+                                         (format " [%s]" last-val))))
                           values
                           (or last-values
                               (make-list (length values) nil)))
                ", "))
 
 (defvar org-web-track-columns-format
-  (format "%%12ITEM %%%s(%s) %%%s(%s)"
-          org-web-track--propname-value
-          (get 'org-web-track--propname-value 'label)
-          org-web-track--propname-date
-          (get 'org-web-track--propname-date 'label))
+  (format "%%12ITEM %%%s(%s [%s] ) %%%s(%s)"
+          org-web-track-update-property
+          (get 'org-web-track-update-property 'label)
+          (get 'org-web-track-prev-property 'label)
+          org-web-track-date-property
+          (get 'org-web-track-date-property 'label))
   "")
 
 (defun org-web-track-agenda-view ()
@@ -353,22 +309,28 @@ Return non-nil if value has changed."
                                (format "%s={.+}" org-web-track-url-property)
                                org-web-track-files))))
 
-(defun org-web-track-update ()
-  "docstring"
-  (interactive)
-  (let* ((org-trust-scanner-tags t)
-         (track-url
-          (org-entry-get (point) org-web-track-url-property))
-         (values-recorded
-          (org-entry-get-multivalued-property (point) "TRACK_VALUE"))
-         (values
-          (ignore-errors (org-web-track-get-values track-url t))))
-    (when org-web-track-grant-update
-      (org-web-track-record (point-marker) values))
-    (unless (equal values values-recorded)
-      (cons (and (save-excursion (org-back-to-heading t))
-                 (point-marker))
-            values))))
+(defun org-web-track-update (&optional async)
+  "Start tracking and update properties.
+
+This command blocks user interaction unless ASYNC is non-nil.
+Note that ASYNC mode is not adequately tested."
+  (interactive "P")
+  (let ((track-url (org-entry-get (point) org-web-track-url-property))
+        (marker (point-marker)))
+    (if async
+        (apply #'funcall
+               #'org-web-track-get-values
+               track-url nil
+               #'org-web-track-record
+               nil
+               (list marker))
+      (let ((updates (apply (if (called-interactively-p)
+                                #'funcall-interactively
+                              #'funcall)
+                            #'org-web-track-get-values
+                            track-url
+                            (list (not async)))))
+        (org-web-track-record marker updates)))))
 
 (defun org-web-track-test-tracker (tracker url)
   "Return a value, which is a result of applying TRACKER for contents at URL.
