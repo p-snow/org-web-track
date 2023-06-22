@@ -201,29 +201,32 @@ SELECTOR is supposed to be a function that take a json object."
   "Propagate UPDATES to the entry in consequence of getting updates-in-entry in success.
 
 Return non-nil if value has changed."
-  (let ((updates-in-entry (org-entry-get-multivalued-property marker org-web-track-update-property))
-        (update-time (format-time-string (org-time-stamp-format t t))))
-    (setf (alist-get 'track org-log-note-headings)
-          "Record %-12s on %t")
-    (cl-labels ((update-value ()
-                  (when org-web-track-grant-update
-                    (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
-                    (org-add-log-setup 'track
-                                       (org-entry-get (point) org-web-track-update-property)
-                                       nil 'state update-time)))
-                (update-last-value ()
-                  (when org-web-track-grant-update
-                    (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry))))
-      (when org-web-track-grant-update
-        (org-entry-put marker org-web-track-date-property update-time))
-      (if (not updates-in-entry)
-          (progn (update-value)
-                 (cons marker updates))
-        (if (not (equal updates updates-in-entry))
-            (progn (update-last-value)
-                   (update-value)
+  (when (cl-delete-if (lambda (elm) (or (not (stringp elm))
+                                    (>= 0 (length elm))))
+                      updates)
+    (let ((updates-in-entry (org-entry-get-multivalued-property marker org-web-track-update-property))
+          (update-time (format-time-string (org-time-stamp-format t t))))
+      (setf (alist-get 'track org-log-note-headings)
+            "Record %-12s on %t")
+      (cl-labels ((update-value ()
+                    (when org-web-track-grant-update
+                      (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
+                      (org-add-log-setup 'track
+                                         (org-entry-get (point) org-web-track-update-property)
+                                         nil 'state update-time)))
+                  (update-last-value ()
+                    (when org-web-track-grant-update
+                      (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry))))
+        (when org-web-track-grant-update
+          (org-entry-put marker org-web-track-date-property update-time))
+        (if (not updates-in-entry)
+            (progn (update-value)
                    (cons marker updates))
-          nil)))))
+          (if (not (equal updates updates-in-entry))
+              (progn (update-last-value)
+                     (update-value)
+                     (cons marker updates))
+            nil))))))
 
 (defun org-web-track-insert-value-change-table ()
   "Insert a table whose row represents value change at the time."
