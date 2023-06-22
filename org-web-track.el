@@ -62,11 +62,49 @@
 Each element is for specific site whose car is regexp for the site url and
 cdr is a function responsible for tracking data in the site.")
 
+(defvar org-web-track-grant-update t)
+
 (defun org-web-track-initialize (url)
   "Initialize the org entry at point as a web tracking item by putting URL."
   (interactive (list (read-string "URL: ")))
   (org-entry-put (point) org-web-track-url-property url)
   (org-web-track-update))
+
+(defun org-web-track-update (&optional async)
+  "Start tracking and update properties.
+
+This command blocks user interaction unless ASYNC is non-nil.
+Note that ASYNC mode is not adequately tested."
+  (interactive "P")
+  (let ((track-url (org-entry-get (point) org-web-track-url-property))
+        (marker (point-marker)))
+    (if async
+        (apply #'funcall
+               #'org-web-track-get-values
+               track-url nil
+               #'org-web-track-record
+               nil
+               (list marker))
+      (let ((updates (apply (if (called-interactively-p)
+                                #'funcall-interactively
+                              #'funcall)
+                            #'org-web-track-get-values
+                            track-url
+                            (list (not async)))))
+        (prog1 (org-web-track-record marker updates)
+          (when (called-interactively-p)
+            (run-hooks 'post-command-hook)))))))
+
+(defun org-web-track-update-all (&optional check-only)
+  ""
+  (interactive)
+  (let ((org-web-track-grant-update (not check-only)))
+    (delq nil (org-map-entries (lambda ()
+                                 (funcall-interactively 'org-web-track-update))
+                               (format "%s={.+}" org-web-track-url-property)
+
+
+                               org-web-track-files))))
 
 (defun org-web-track-get-values (url &optional sync on-success on-fail marker)
   "Get values by accessing URL."
@@ -277,17 +315,31 @@ Return non-nil if value has changed."
                               (make-list (length values) nil)))
                ", "))
 
+(defcustom org-web-track-item-column-width 0
+  "0 means unspecified."
+  :type 'natnum)
+
+(defcustom org-web-track-update-column-width 0
+  "0 means unspecified."
+  :type 'natnum)
+
 (defvar org-web-track-columns-format
-  (format "%%12ITEM %%%s(%s [%s] ) %%%s(%s)"
-          org-web-track-update-property
-          (get 'org-web-track-update-property 'label)
-          (get 'org-web-track-prev-property 'label)
-          org-web-track-date-property
-          (get 'org-web-track-date-property 'label))
-  "")
+  (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
+         `(,@(mapcar (lambda (w) (if (= 0 w) "" (format "%d" w)))
+                     `(,org-web-track-item-column-width
+                       ,org-web-track-update-column-width))
+           ,org-web-track-update-property
+           ,(get 'org-web-track-update-property 'label)
+           ,(get 'org-web-track-prev-property 'label)
+           ,org-web-track-date-property
+           ,(get 'org-web-track-date-property 'label)))
+  "Format for columns in `org-agenda' column view.")
+
+(defcustom org-web-track-files nil "docstring"
+  :type '(repeat :tag "List of files" file))
 
 (defun org-web-track-agenda-view ()
-  "docstring"
+  "Dsiplay agenda with column view."
   (interactive)
   (when (require 'org-colview nil t)
     (let ((org-agenda-files org-web-track-files)
@@ -296,44 +348,6 @@ Return non-nil if value has changed."
           (org-overriding-columns-format org-web-track-columns-format)
           (org-agenda-view-columns-initially t))
       (org-tags-view nil (format "%s={.+}" org-web-track-url-property)))))
-
-(defcustom org-web-track-files (org-agenda-files) "docstring"
-  :type '(repeat :tag "List of files" file))
-(defvar org-web-track-grant-update t "docstring")
-
-(defun org-web-track-update-all (&optional check-only)
-  ""
-  (interactive)
-  (let ((org-web-track-grant-update (not check-only)))
-    (delq nil (org-map-entries (lambda ()
-                                 (funcall-interactively 'org-web-track-update))
-                               (format "%s={.+}" org-web-track-url-property)
-                               org-web-track-files))))
-
-(defun org-web-track-update (&optional async)
-  "Start tracking and update properties.
-
-This command blocks user interaction unless ASYNC is non-nil.
-Note that ASYNC mode is not adequately tested."
-  (interactive "P")
-  (let ((track-url (org-entry-get (point) org-web-track-url-property))
-        (marker (point-marker)))
-    (if async
-        (apply #'funcall
-               #'org-web-track-get-values
-               track-url nil
-               #'org-web-track-record
-               nil
-               (list marker))
-      (let ((updates (apply (if (called-interactively-p)
-                                #'funcall-interactively
-                              #'funcall)
-                            #'org-web-track-get-values
-                            track-url
-                            (list (not async)))))
-        (prog1 (org-web-track-record marker updates)
-          (when (called-interactively-p)
-            (run-hooks 'post-command-hook)))))))
 
 (defun org-web-track-test-tracker (tracker url)
   "Return a value, which is a result of applying TRACKER for contents at URL.
