@@ -56,11 +56,17 @@
 (defvar org-web-track-update-timeout 20
   "Time out in second for accessing web site to get values.")
 
-(defcustom org-web-track-trackers nil
-  "An alist for tracking each site.
+(defcustom org-web-track-selector-alist nil
+  "An alist of selectors to obtain tracking data.
 
-Each element is for specific site whose car is regexp for the site url and
-cdr is a function responsible for tracking data in the site.")
+Each element has the form (URL-MATCH . SELECTOR), where URL-MATCH is used to
+find which tracking entry this SELECTOR is responsible for and SELECTOR itself."
+  :type '(alist :key-type (string :tag "Regexp")
+                :value-type
+                (choice (vector :tag "CSS selector")
+                        (string :tag "Command string")
+                        function))
+  :group 'org-web-track)
 
 (defvar org-web-track-grant-update t)
 
@@ -106,7 +112,7 @@ If optional argument CHECK-ONLY is non-nil, updating entries is shunned."
 
 (defun org-web-track-get-values (url &optional sync on-success on-fail marker)
   "Get values by accessing URL."
-  (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
+  (let ((tracker-def (assoc-default url org-web-track-selector-alist #'string-match))
         (request-backend 'url-retrieve)
         (request-curl-options
          `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
@@ -317,11 +323,13 @@ Return non-nil if value has changed."
 
 (defcustom org-web-track-item-column-width 0
   "0 means unspecified."
-  :type 'natnum)
+  :type 'natnum
+  :group 'org-web-track)
 
 (defcustom org-web-track-update-column-width 0
   "0 means unspecified."
-  :type 'natnum)
+  :type 'natnum
+  :group 'org-web-track)
 
 (defvar org-web-track-columns-format
   (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
@@ -336,7 +344,8 @@ Return non-nil if value has changed."
   "Format for columns in `org-agenda' column view.")
 
 (defcustom org-web-track-files nil "docstring"
-  :type '(repeat :tag "List of files" file))
+  :type '(repeat :tag "List of files" file)
+  :group 'org-web-track)
 
 (defun org-web-track-agenda-view ()
   "Dsiplay agenda with column view."
@@ -352,10 +361,10 @@ Return non-nil if value has changed."
 (defun org-web-track-test-tracker (tracker url)
   "Return a value, which is a result of applying TRACKER for contents at URL.
 
-User can test their tracker without setting `org-web-track-trackers'."
-  (let ((org-web-track-trackers
+User can test their tracker without setting `org-web-track-selector-alist'."
+  (let ((org-web-track-selector-alist
          (append `((,(regexp-quote url) ,tracker))
-                 org-web-track-trackers)))
+                 org-web-track-selector-alist)))
     (princ (org-web-track-get-values url t nil))))
 
 (provide 'org-web-track)
