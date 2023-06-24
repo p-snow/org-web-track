@@ -85,7 +85,7 @@ Note that ASYNC mode is not adequately tested."
                #'org-web-track-record
                nil
                (list marker))
-      (let ((updates (apply (if (called-interactively-p)
+      (let ((updates (apply (if (called-interactively-p 'any)
                                 #'funcall-interactively
                               #'funcall)
                             #'org-web-track-get-values
@@ -107,8 +107,7 @@ If optional argument CHECK-ONLY is non-nil, updating entries is shunned."
 (defun org-web-track-get-values (url &optional sync on-success on-fail marker)
   "Get values by accessing URL."
   (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
-        (request-backend
-         (if (called-interactively-p) 'curl 'url-retrieve))
+        (request-backend 'url-retrieve)
         (request-curl-options
          `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
         (values nil))
