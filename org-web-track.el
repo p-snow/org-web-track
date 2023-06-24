@@ -91,19 +91,17 @@ Note that ASYNC mode is not adequately tested."
                             #'org-web-track-get-values
                             track-url
                             (list (not async)))))
-        (prog1 (org-web-track-record marker updates)
-          (when (called-interactively-p)
-            (run-hooks 'post-command-hook)))))))
+        (org-web-track-record marker updates)))))
 
 (defun org-web-track-update-all (&optional check-only)
-  ""
+  "Update all tracking entries in `org-web-track-files' and return a set of change.
+
+If optional argument CHECK-ONLY is non-nil, updating entries is shunned."
   (interactive)
   (let ((org-web-track-grant-update (not check-only)))
     (delq nil (org-map-entries (lambda ()
-                                 (funcall-interactively 'org-web-track-update))
+                                 (call-interactively 'org-web-track-update))
                                (format "%s={.+}" org-web-track-url-property)
-
-
                                org-web-track-files))))
 
 (defun org-web-track-get-values (url &optional sync on-success on-fail marker)
