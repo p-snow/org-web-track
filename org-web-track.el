@@ -70,11 +70,16 @@ find which tracking entry this SELECTOR is responsible for and SELECTOR itself."
 
 (defvar org-web-track-grant-update t)
 
-(defun org-web-track-initialize (url)
-  "Initialize the org entry at point as a web tracking item by putting URL."
-  (interactive (list (read-string "URL: ")))
+(defun org-web-track-setup (url)
+  "Setup tracking entry for URL by putting `org-web-track-url-property'.
+
+If there is no selector defined in `org-web-track-selector-alist' for the URL,
+encourage user to custom beforehand"
+  (interactive (list (read-string "Tracking URL: ")))
   (org-entry-put (point) org-web-track-url-property url)
-  (org-web-track-update))
+  (if (assoc-default url org-web-track-selector-alist #'string-match)
+      (org-web-track-update)
+    (user-error "No selector defined for the URL")))
 
 (defun org-web-track-update (&optional async)
   "Start tracking and update properties.
