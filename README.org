@@ -48,7 +48,7 @@ org-web-track is an elisp package that helps you to keep track of text data on t
    The variable org-web-track-selector-alist is used to define a list of selection conditions in the (URL-MATCH . SELECTOR) format. If a tracking item has a URL that matches URL-MATCH, the SELECTOR is applied to the response for that URL to capture data.
 2. Creating tracking items
 
-   #+begin_src text
+   #+begin_src text :exports none
      A tracking item in org-web-track is represented as a single org entry.
      User needs to create an org entry first then invoke org-web-track-setup to set a tracking URL and execute initial data tracking.
    #+end_src
