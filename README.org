@@ -5,7 +5,7 @@
 
 * Org Web Track
 
-org-web-track is an elisp package that helps you to keep track of text data on the web (e.g. news, prices or currency rates) in Org mode.
+=org-web-track= is an elisp package that helps you to keep track of text data on the web (e.g. news, prices or currency rates) in Org mode.
 
 * Features
 :PROPERTIES:
@@ -21,21 +21,21 @@ org-web-track is an elisp package that helps you to keep track of text data on t
 
 - Web API suport
 
-  org-web-track supports Web API as well. As of now, JSON is the only supported format.
+  =org-web-track= supports Web API as well. As of now, JSON is the only supported format.
 
 - Summary view
 
-  org-web-track offers column view (powered by Org Agenda Column View) which shows update of all tracking entries along with the previous.
+  =org-web-track= offers column view (powered by Org Agenda Column View) which shows update of all tracking entries along with the previous.
 
 - History table
 
-  org-web-track offers a history table by logging a record when data differ from the previously checked. User can create a graph from the table using utility tool such as [[http://www.gnuplot.info/][gnuplot]].
+  =org-web-track= offers a history table by logging a record when data differ from the previously checked. User can create a graph from the table using utility tool such as [[http://www.gnuplot.info/][gnuplot]].
 
 * Usage
 :PROPERTIES:
 :CREATED:  [2023-06-16 Fri 09:56]
 :END:
-** Workflow
+** Basic data tracking workflow
 :PROPERTIES:
 :CREATED:  [2023-06-16 Fri 10:37]
 :END:
@@ -45,14 +45,19 @@ org-web-track is an elisp package that helps you to keep track of text data on t
    #+begin_src text :exports none
      Users must define selectors when creating tracking items. A selector specifies where to capture data within a specific URL.
    #+end_src
-   The variable org-web-track-selector-alist is used to define a list of selection conditions in the (URL-MATCH . SELECTOR) format. If a tracking item has a URL that matches URL-MATCH, the SELECTOR is applied to the response for that URL to capture data.
+   The variable =org-web-track-selector-alist= is used to define a list of selection conditions in the (URL-MATCH . SELECTOR) format. If a tracking item has a URL that matches URL-MATCH, the SELECTOR is applied to the response for that URL to capture data.
+
+   #+begin_src org
+     SELECTOR is either a vector, a function or a string. The vector denotes a CSS selector(See [[https://github.com/zweifisch/enlive#start-of-content][enlive]]). The function will be called in a temporary buffer where HTML document is inserted. The string is meant to be a shell command invoked with piped HTML string.
+   #+end_src
+   SELECTOR can take on one of three forms: a vector, a function, or a string. If a vector is provided, it should represent a CSS selector. If a function is provided, it will be called with a temporary buffer containing the HTML document. If a string is provided, it should represent a shell command that will be invoked with the HTML string piped in.
 2. Creating tracking items
 
    #+begin_src text :exports none
-     A tracking item in org-web-track is represented as a single org entry.
+     A tracking item in =org-web-track= is represented as a single org entry.
      User needs to create an org entry first then invoke org-web-track-setup to set a tracking URL and execute initial data tracking.
    #+end_src
-   To track an item in org-web-track, the user needs to create an org entry first and then use org-web-track-setup to set a tracking URL and carry out initial data tracking.
+   To track an item in =org-web-track=, the user needs to create an org entry first and then use =org-web-track-setup= to set a tracking URL and carry out initial data tracking.
 3. Updating data
 
    #+begin_src text :exports none
@@ -74,12 +79,24 @@ org-web-track is an elisp package that helps you to keep track of text data on t
 - [[https://github.com/tkf/emacs-request][request.el]]
 - [[https://github.com/zweifisch/enlive][enlive]]
 
-** use-package
+** Installing package
+:PROPERTIES:
+:CREATED:  [2023-06-25 Sun 20:55]
+:END:
+
+=org-web-track= has not been registered at any package repositories. Users need to download and locate manually (or use :vc keyword in use-package for early adapters).
+
+** use-package example
 :PROPERTIES:
 :CREATED:  [2023-06-25 Sun 15:09]
 :END:
 
-org-web-track has not been registered at any package repositories.
+#+begin_src emacs-lisp :eval no :exports code
+  (use-package org-web-track
+    :load-path ("<org-web-track-path>")
+    :custom
+    (org-web-track-files '("~/org/private.org" "~/org/to-buy.org")))
+#+end_src
 
 * License                                                          :noexport:
 
