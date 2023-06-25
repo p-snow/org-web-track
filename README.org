@@ -47,7 +47,7 @@
    #+end_src
    The variable =org-web-track-selector-alist= is used to define a list of selection conditions in the (URL-MATCH . SELECTOR) format. If a tracking item has a URL that matches URL-MATCH, the SELECTOR is applied to the response for that URL to capture data.
 
-   #+begin_src org
+   #+begin_src org :exports none
      SELECTOR is either a vector, a function or a string. The vector denotes a CSS selector(See [[https://github.com/zweifisch/enlive#start-of-content][enlive]]). The function will be called in a temporary buffer where HTML document is inserted. The string is meant to be a shell command invoked with piped HTML string.
    #+end_src
    SELECTOR can take on one of three forms: a vector, a function, or a string. If a vector is provided, it should represent a CSS selector. If a function is provided, it will be called with a temporary buffer containing the HTML document. If a string is provided, it should represent a shell command that will be invoked with the HTML string piped in.
@@ -94,6 +94,12 @@
 #+begin_src emacs-lisp :eval no :exports code
   (use-package org-web-track
     :load-path ("<org-web-track-path>")
+    :init
+    (setq org-web-track-selector-alist
+          `(("books.toscrape.com" [.price_color])
+            ("openexchangerates.org/api/latest"
+             (lambda (json)
+               (number-to-string (assoc-default 'JPY (assoc-default 'rates json)))))))
     :custom
     (org-web-track-files '("~/org/private.org" "~/org/to-buy.org")))
 #+end_src
