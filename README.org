@@ -1,0 +1,96 @@
+
+* Org Web Track
+
+org-web-track is an elisp package that helps you to keep track of text data on the web (e.g. news, prices or currency rates) in Org mode.
+
+* Features
+:PROPERTIES:
+:CREATED:  [2023-06-24 Sat 14:21]
+:END:
+
+** Anywhere in the page
+:PROPERTIES:
+:CREATED:  [2023-06-24 Sat 18:14]
+:END:
+
+#+begin_src text
+  User can capture any part of a web page using CSS selector. Shell command or elisp function can be used as well to filter page source for avid user.
+  ---
+  Users can capture any part of a web page by using a CSS selector. They can also filter the page source using a shell command or an Elisp function, depending on their preference.
+#+end_src
+
+** Web API suport
+:PROPERTIES:
+:CREATED:  [2023-06-24 Sat 18:22]
+:END:
+
+org-web-track supports Web API. As of now, JSON is the only supported format.
+
+** Summary view
+:PROPERTIES:
+:CREATED:  [2023-06-24 Sat 18:18]
+:END:
+
+org-web-track offers column view (powered by Org Agenda Column View) which shows update of all tracking entries along with the previous.
+
+** History table
+:PROPERTIES:
+:CREATED:  [2023-06-24 Sat 18:18]
+:END:
+
+org-web-track offers a history table by logging a record when data differ from the previously checked. User can create a graph from the table using utility tool such as [[http://www.gnuplot.info/][gnuplot]].
+
+* Usage
+:PROPERTIES:
+:CREATED:  [2023-06-16 Fri 09:56]
+:END:
+** Workflow
+:PROPERTIES:
+:CREATED:  [2023-06-16 Fri 10:37]
+:END:
+
+1. Setup selectors
+   #+begin_src text :exports none
+     Users must define selectors when creating tracking items. A selector specifies where to capture data within a specific URL.
+   #+end_src
+   The variable org-web-track-selector-alist is used to define a list of selection conditions in the (URL-MATCH . SELECTOR) format. If a tracking item has a URL that matches URL-MATCH, the SELECTOR is applied to the response for that URL to capture data.
+2. Creating tracking items
+   #+begin_src text
+     A tracking item is represented as one org entry in org-web-track.
+
+     User must setup by invoking org-web-track-setup at first.
+   #+end_src
+
+3. Set a tracker
+4. Set target org file
+5. Make org entry
+6. Initialize
+
+** Examples
+:PROPERTIES:
+:CREATED:  [2023-06-16 Fri 10:29]
+:END:
+* Installation
+:PROPERTIES:
+:CREATED:  [2023-06-16 Fri 09:56]
+:END:
+** Requirements
+:PROPERTIES:
+:CREATED:  [2023-06-16 Fri 10:20]
+:END:
+
+- Emacs 28.1 or higher
+- Org-mode 9.6.1 or higher
+- [[https://github.com/tkf/emacs-request][request.el]]
+- [[https://github.com/zweifisch/enlive][enlive]]
+
+** use-package
+:PROPERTIES:
+:CREATED:  [2023-06-25 Sun 15:09]
+:END:
+
+org-web-track has not been registered at any package repositories.
+
+* License                                                          :noexport:
+
+GPLv3
