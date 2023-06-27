@@ -3,6 +3,10 @@
   An elisp package that offers a set of commands to kepp track of data on the Web in Org Mode
 #+end_src
 
+#+begin_src text :exports none
+  org-web-tools offers a set of elisp functions and commands which are useful for retrieving and managing data from the web in Org mode.
+#+end_src
+
 * Org Web Track
 
 =org-web-track= is an elisp package that helps you to keep track of text data on the web (e.g. news, prices or currency rates) in Org mode.

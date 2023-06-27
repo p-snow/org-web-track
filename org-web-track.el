@@ -26,10 +26,10 @@
 
 ;;; Commentary:
 
-;;
+;; org-web-tools offers a set of elisp functions and commands which are useful
+;; for retrieving and managing data from the web in Org mode.
 
 ;;; Code:
-
 
 (require 'org)
 (require 'org-agenda)
