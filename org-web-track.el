@@ -2,7 +2,7 @@
 
 ;; Author: p-snow <p-snow@daisychain.jp>
 ;; Maintainer: p-snow <p-snow@daisychain.jp>
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; Package-Requires: (org org-agenda request enlive)
 ;; Homepage: homepage
 ;; Keywords: org, agenda, web, hypermedia
