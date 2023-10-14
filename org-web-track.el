@@ -68,8 +68,6 @@ find which tracking entry this SELECTOR is responsible for and SELECTOR itself."
                         function))
   :group 'org-web-track)
 
-(defvar org-web-track-grant-update t)
-
 (defun org-web-track-setup (url)
   "Setup tracking entry for URL by putting `org-web-track-url-property'.
 
@@ -104,16 +102,13 @@ Note that ASYNC mode is not adequately tested."
                             (list (not async)))))
         (org-web-track-record marker updates)))))
 
-(defun org-web-track-update-all (&optional check-only)
-  "Update all tracking entries in `org-web-track-files' and return a set of change.
-
-If optional argument CHECK-ONLY is non-nil, updating entries is shunned."
+(defun org-web-track-update-all ()
+  "Update all tracking entries in `org-web-track-files' and return a set of change."
   (interactive)
-  (let ((org-web-track-grant-update (not check-only)))
-    (delq nil (org-map-entries (lambda ()
-                                 (call-interactively 'org-web-track-update))
-                               (format "%s={.+}" org-web-track-url-property)
-                               org-web-track-files))))
+  (delq nil (org-map-entries (lambda ()
+                               (call-interactively 'org-web-track-update))
+                             (format "%s={.+}" org-web-track-url-property)
+                             org-web-track-files)))
 
 (defun org-web-track-get-values (url &optional sync on-success on-fail marker)
   "Get values by accessing URL."
@@ -217,16 +212,15 @@ Return non-nil if value has changed."
       (setf (alist-get 'track org-log-note-headings)
             "Record %-12s on %t")
       (cl-labels ((update-value ()
-                    (when org-web-track-grant-update
-                      (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
-                      (org-add-log-setup 'track
-                                         (org-entry-get (point) org-web-track-update-property)
-                                         nil 'state update-time)))
+                    (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
+                    (org-with-point-at marker
+                      (prog1 (org-add-log-setup 'track
+                                                (org-entry-get (point) org-web-track-update-property)
+                                                nil 'state update-time)
+                        (run-hooks 'post-command-hook))))
                   (update-last-value ()
-                    (when org-web-track-grant-update
-                      (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry))))
-        (when org-web-track-grant-update
-          (org-entry-put marker org-web-track-date-property update-time))
+                    (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry)))
+        (org-entry-put marker org-web-track-date-property update-time)
         (if (not updates-in-entry)
             (progn (update-value)
                    (cons marker updates))
