@@ -209,13 +209,16 @@ Return non-nil if value has changed."
                       updates)
     (let ((updates-in-entry (org-entry-get-multivalued-property marker org-web-track-update-property))
           (update-time (format-time-string (org-time-stamp-format t t))))
-      (setf (alist-get 'track org-log-note-headings)
-            "Record %-12s on %t")
       (cl-labels ((update-value ()
                     (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
                     (org-with-point-at marker
+                      (setf (alist-get 'track org-log-note-headings)
+                            "Record %-12s on %t")
                       (prog1 (org-add-log-setup 'track
-                                                (org-entry-get (point) org-web-track-update-property)
+                                                ;; work around for stuck process in
+                                                ;; string conversion at `org-store-log-note'
+                                                (replace-regexp-in-string "\\(?:%20\\([DSTUdstu]\\)\\)" "_\\1"
+                                                                          (org-entry-get (point) org-web-track-update-property))
                                                 nil 'state update-time)
                         (run-hooks 'post-command-hook))))
                   (update-last-value ()
