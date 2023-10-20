@@ -213,7 +213,7 @@ Return non-nil if value has changed."
                     (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
                     (org-with-point-at marker
                       (setf (alist-get 'track org-log-note-headings)
-                            "Record %-12s on %t")
+                            "Track %-12s on %t")
                       (prog1 (org-add-log-setup 'track
                                                 ;; work around for stuck process in
                                                 ;; string conversion at `org-store-log-note'
@@ -245,7 +245,7 @@ Return non-nil if value has changed."
               (date (org-entry-get (point) org-web-track-date-property))
               (values (org-entry-get-multivalued-property (point) org-web-track-update-property))
               (drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
-              (re (concat (rx "- Record "
+              (re (concat (rx "- Track "
                               "\"" (group (+ not-newline)) "\""
                               (+ space) (opt "on") (+ space))
                           org-ts-regexp-inactive))
