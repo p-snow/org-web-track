@@ -38,8 +38,8 @@
 (require 'enlive)
 (require 'rx)
 
-(defvar org-web-track-update-property "WEB_TRACK_UPDATE"
-  "Property name for value.")
+(defvar org-web-track-update-property "WEB_TRACK_LAST"
+  "Property name for latest value.")
 (put 'org-web-track-update-property 'label "UPDATE")
 
 (defvar org-web-track-prev-property "WEB_TRACK_PREV"
@@ -49,7 +49,7 @@
 (defvar org-web-track-url-property "WEB_TRACK_URL"
   "Property name for tracking URL.")
 
-(defvar org-web-track-date-property "WEB_TRACK_DATE"
+(defvar org-web-track-date-property "WEB_TRACK_AT"
   "Property name for the date at which track value.")
 (put 'org-web-track-date-property 'label "DATE")
 
