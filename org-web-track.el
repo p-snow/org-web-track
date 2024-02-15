@@ -90,16 +90,12 @@ Note that ASYNC mode is not adequately tested."
     (if async
         (apply #'funcall
                #'org-web-track-get-values
-               track-url nil
-               #'org-web-track-record
-               nil
-               (list marker))
+               track-url async #'org-web-track-record nil (list marker))
       (let ((updates (apply (if (called-interactively-p 'any)
                                 #'funcall-interactively
                               #'funcall)
                             #'org-web-track-get-values
-                            track-url
-                            (list (not async)))))
+                            track-url async)))
         (org-web-track-record marker updates)))))
 
 (defun org-web-track-update-all ()
@@ -110,19 +106,26 @@ Note that ASYNC mode is not adequately tested."
                              (format "%s={.+}" org-web-track-url-property)
                              org-web-track-files)))
 
-(defun org-web-track-get-values (url &optional sync on-success on-fail marker)
-  "Get values by accessing URL."
-  (let ((tracker-def (assoc-default url org-web-track-selector-alist #'string-match))
+(defun org-web-track-get-values (url &optional async on-success on-fail marker)
+  "Get target values by accessing URL.
+
+If ASYNC is non-nil, this process will be executed asynchronously (Synchronous access is default)."
+  (let ((the-selector
+         (assoc-default url org-web-track-selector-alist
+                        (lambda (car key)
+                          (cond
+                           ((functionp car) (funcall car key))
+                           ((stringp car) (string-match-p car key))))))
         (request-backend 'url-retrieve)
         (request-curl-options
          `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
         (values nil))
-    (unless tracker-def
+    (unless the-selector
       (and (functionp on-fail)
            (progn (apply on-fail marker)
                   (user-error "No tracker available for this entry"))))
     (request url
-      :sync sync
+      :sync (not async)
       :timeout org-web-track-update-timeout
       :success
       (cl-function
@@ -367,7 +370,7 @@ User can test their tracker without setting `org-web-track-selector-alist'."
   (let ((org-web-track-selector-alist
          (append `((,(regexp-quote url) ,tracker))
                  org-web-track-selector-alist)))
-    (princ (org-web-track-get-values url t nil))))
+    (princ (org-web-track-get-values url nil nil))))
 
 (provide 'org-web-track)
 
