@@ -63,8 +63,8 @@ Each element has the form (URL-MATCH . SELECTOR), where URL-MATCH is used to
 find which tracking entry this SELECTOR is responsible for and SELECTOR itself."
   :type '(alist :key-type (string :tag "Regexp")
                 :value-type
-                (choice (vector :tag "CSS selector")
-                        (string :tag "Command string")
+                (choice (vector :tag "A CSS selector")
+                        (string :tag "A shell command that processes HTTP response content")
                         function))
   :group 'org-web-track)
 
