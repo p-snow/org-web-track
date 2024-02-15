@@ -135,22 +135,20 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
                                                    content-type)
                                      (match-string 1 content-type)
                                    ""))
+                (coding-sys (intern (downcase content-charset)))
                 (content (request-response-data response)))
            (setq values
                  (mapcar (lambda (selector)
-                           (string-trim
-                            (funcall (cond
-                                      ((string-prefix-p "text/html" content-type t)
-                                       #'org-web-track--parse-html)
-                                      ((string-prefix-p "application/json" content-type t)
-                                       #'org-web-track--parse-json))
-                                     (if (string-match-p (rx (or "UTF" "utf")
-                                                             (? "-") "8")
-                                                         content-charset)
-                                         (decode-coding-string content 'utf-8)
-                                       content)
-                                     selector)))
-                         (ensure-list tracker-def))))))
+                           (funcall #'org-web-track--select-value
+                                    (when (string-match (rx (or (seq (or "application/" "text/")
+                                                                     (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
+                                                        content-type)
+                                      (intern (match-string 1 content-type)))
+                                    (decode-coding-string content
+                                                          (and (member coding-sys (coding-system-list))
+                                                               coding-sys))
+                                    selector))
+                         (ensure-list the-selector))))))
       :error
       (cl-function
        (lambda (&key response &allow-other-keys)
@@ -167,41 +165,39 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
            (and (functionp on-fail)
                 (apply on-fail marker))
            (message "No value available at the end of tracker appliance")))))
-    (and sync
-         values)))
+    (unless async
+      values)))
 
-(defun org-web-track--parse-html (html selector)
-  "Return tracked value by applying SELECTOR to HTML.
+(defmacro org-web-track--with-content-buffer (content &rest body)
+  "Execute BODY in the temporary buffer where CONTENT is inserted."
+  (declare (indent 1))
+  `(with-temp-buffer
+     (set-buffer-multibyte t)
+     (insert ,content)
+     ,@body))
 
-SELECTOR is supposed to be a vector or a string. If vector, it is used as a css
-selector."
-  (cond
-   ((vectorp selector)
-    (enlive-text
-     (enlive-query (enlive-parse html)
-                   selector)))
-   ((stringp selector)
-    (with-temp-buffer
-      (set-buffer-multibyte t)
-      (insert html)
-      (decode-coding-region (point-min) (point-max) 'utf-8)
-      (if (= 0 (shell-command-on-region (point-min) (point-max)
-                                        selector
-                                        t t))
-          (buffer-substring-no-properties (point-min) (point-max))
-        "")))
-   (t nil)))
-
-(defun org-web-track--parse-json (json selector)
-  "Return tracked value by applying SELECTOR to JSON.
-
-SELECTOR is supposed to be a function that take a json object."
-  (let ((json-obj (json-parse-string json
-                                     :object-type 'alist)))
-    (cond
-     ((or (functionp selector)
-          (symbolp selector))
-      (funcall selector json-obj)))))
+(defun org-web-track--select-value (format content selector)
+  "Return a value derived from CONTENT which is FORMAT format by using SELECTOR."
+  (let ((val (cond
+              ((stringp selector)
+               (org-web-track--with-content-buffer content
+                 (when (= 0 (shell-command-on-region (point-min) (point-max) selector t t))
+                   (buffer-substring-no-properties (point-min) (point-max)))))
+              ((functionp selector)
+               (funcall selector (cond
+                                  ((eq format 'json) (json-parse-string content :object-type 'alist))
+                                  ((eq format 'html)
+                                   (org-web-track--with-content-buffer content
+                                     (libxml-parse-html-region)))
+                                  ((eq format 'xml)
+                                   (org-web-track--with-content-buffer content
+                                     (libxml-parse-xml-region))))))
+              ((and (vectorp selector)
+                    (eq format 'html))
+               (enlive-text (enlive-query (enlive-parse content)
+                                          selector))))))
+    (when (stringp val)
+      (string-trim val))))
 
 (defun org-web-track-record (marker updates)
   "Propagate UPDATES to the entry in consequence of getting updates-in-entry in success.
