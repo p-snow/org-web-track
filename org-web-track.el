@@ -203,10 +203,11 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
   "Propagate UPDATES to the entry in consequence of getting updates-in-entry in success.
 
 Return non-nil if value has changed."
-  (when (cl-delete-if (lambda (elm) (or (not (stringp elm))
-                                    (>= 0 (length elm))))
-                      updates)
-    (let ((updates-in-entry (org-entry-get-multivalued-property marker org-web-track-update-property))
+  (when (cl-delete-if-not 'stringp updates)
+    (let ((updates-in-entry
+           (or (org-entry-get-multivalued-property marker org-web-track-update-property)
+               (when-let ((single-val (org-entry-get marker org-web-track-update-property)))
+                 (make-list (length updates) single-val))))
           (update-time (format-time-string (org-time-stamp-format t t))))
       (cl-labels ((update-value ()
                     (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
