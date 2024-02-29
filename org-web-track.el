@@ -80,34 +80,35 @@ encourage user to custom beforehand"
     (user-error "No selector defined for the URL")))
 
 (defun org-web-track-update (&optional async)
-  "Start tracking and update properties.
+  "Look up the current values and set them to the entry at point.
 
-This command blocks user interaction unless ASYNC is non-nil.
-Note that ASYNC mode is not adequately tested."
+This command will block the main Emacs thread unless ASYNC is set to non-nil.
+Note that ASYNC mode is auxiliary and may not be thoroughly tested."
   (interactive "P")
   (let ((track-url (org-entry-get (point) org-web-track-url-property))
         (marker (point-marker)))
     (if async
         (apply #'funcall
-               #'org-web-track-get-values
+               #'org-web-track-retrieve-values
                track-url async #'org-web-track-record nil (list marker))
       (let ((updates (apply (if (called-interactively-p 'any)
                                 #'funcall-interactively
                               #'funcall)
-                            #'org-web-track-get-values
+                            #'org-web-track-retrieve-values
                             track-url async)))
         (org-web-track-record marker updates)))))
 
 (defun org-web-track-update-all ()
-  "Update all tracking entries in `org-web-track-files' and return a set of change."
+  "Update all web-track entries that have the `org-web-track-url-property' property in `org-web-track-files',
+and return a list of cons where the car is a marker pointing to the changed entry and the cdr is its values."
   (interactive)
   (delq nil (org-map-entries (lambda ()
                                (call-interactively 'org-web-track-update))
                              (format "%s={.+}" org-web-track-url-property)
                              org-web-track-files)))
 
-(defun org-web-track-get-values (url &optional async on-success on-fail marker)
-  "Get target values by accessing URL.
+(defun org-web-track-retrieve-values (url &optional async on-success on-fail marker)
+  "Retrieve values by accessing the URL.
 
 If ASYNC is non-nil, this process will be executed asynchronously (Synchronous access is default)."
   (let ((the-selector
@@ -200,11 +201,12 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
       (string-trim val))))
 
 (defun org-web-track-record (marker updates)
-  "Propagate UPDATES to the entry in consequence of getting updates-in-entry in success.
+  "Apply UPDATES to an entry at MARKER by setting the
+`org-web-track-update-property' property.
 
-Return non-nil if value has changed."
+Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
   (when (cl-delete-if-not 'stringp updates)
-    (let ((updates-in-entry
+    (let ((incumbent-values
            (or (org-entry-get-multivalued-property marker org-web-track-update-property)
                (when-let ((single-val (org-entry-get marker org-web-track-update-property)))
                  (make-list (length updates) single-val))))
@@ -222,12 +224,12 @@ Return non-nil if value has changed."
                                                 nil 'state update-time)
                         (run-hooks 'post-command-hook))))
                   (update-last-value ()
-                    (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property updates-in-entry)))
+                    (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property incumbent-values)))
         (org-entry-put marker org-web-track-date-property update-time)
-        (if (not updates-in-entry)
+        (if (not incumbent-values)
             (progn (update-value)
                    (cons marker updates))
-          (if (not (equal updates updates-in-entry))
+          (if (not (equal updates incumbent-values))
               (progn (update-last-value)
                      (update-value)
                      (cons marker updates))
@@ -360,14 +362,15 @@ Return non-nil if value has changed."
           (org-agenda-view-columns-initially t))
       (org-tags-view nil (format "%s={.+}" org-web-track-url-property)))))
 
-(defun org-web-track-test-tracker (tracker url)
-  "Return a value, which is a result of applying TRACKER for contents at URL.
+(defun org-web-track-test-tracker (selector url)
+  "Return the values acquired by applying SELECTOR to the HTTP response for the URL.
 
-User can test their tracker without setting `org-web-track-selector-alist'."
+End users can use this function as a SELECTOR tester before setting up
+`org-web-track-selector-alist' in advance."
   (let ((org-web-track-selector-alist
-         (append `((,(regexp-quote url) ,tracker))
+         (append `((,(regexp-quote url) ,selector))
                  org-web-track-selector-alist)))
-    (princ (org-web-track-get-values url nil nil))))
+    (princ (org-web-track-retrieve-values url nil nil))))
 
 (provide 'org-web-track)
 
