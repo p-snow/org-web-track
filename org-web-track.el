@@ -68,6 +68,22 @@ find which tracking entry this SELECTOR is responsible for and SELECTOR itself."
                         function))
   :group 'org-web-track)
 
+(defcustom org-web-track-files nil
+  "A collection of files that contain tracking entries.
+
+This must be either a list of strings, which is a path for the above-referenced file,
+or a function that returns a list of files."
+  :type '(choice
+          (repeat :tag "List of files" file)
+          (function))
+  :group 'org-web-track)
+
+(defun org-web-track-files ()
+  "Return a list of files that contain tracking entries."
+  (pcase org-web-track-files
+    ((and (pred functionp) fun) (funcall fun))
+    ((and (pred listp) li) li)))
+
 (defun org-web-track-setup (url)
   "Setup tracking entry for URL by putting `org-web-track-url-property'.
 
@@ -105,7 +121,7 @@ and return a list of cons where the car is a marker pointing to the changed entr
   (delq nil (org-map-entries (lambda ()
                                (call-interactively 'org-web-track-update))
                              (format "%s={.+}" org-web-track-url-property)
-                             org-web-track-files)))
+                             (org-web-track-files))))
 
 (defun org-web-track-retrieve-values (url &optional async on-success on-fail marker)
   "Retrieve values by accessing the URL.
@@ -347,15 +363,11 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
            ,(get 'org-web-track-date-property 'label)))
   "Format for columns in `org-agenda' column view.")
 
-(defcustom org-web-track-files nil "docstring"
-  :type '(repeat :tag "List of files" file)
-  :group 'org-web-track)
-
 (defun org-web-track-agenda-view ()
   "Dsiplay agenda with column view."
   (interactive)
   (when (require 'org-colview nil t)
-    (let ((org-agenda-files org-web-track-files)
+    (let ((org-agenda-files (org-web-track-files))
           (org-columns-modify-value-for-display-function
            'org-web-track-display-values)
           (org-overriding-columns-format org-web-track-columns-format)
