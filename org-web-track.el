@@ -38,20 +38,20 @@
 (require 'enlive)
 (require 'rx)
 
-(defvar org-web-track-update-property "WEB_TRACK_LAST"
-  "Property name for latest value.")
-(put 'org-web-track-update-property 'label "UPDATE")
+(defvar org-web-track-update-property "TRACK_CURRENT_VALUE"
+  "Property name for holding current value.")
+(put 'org-web-track-update-property 'label "Current Value")
 
-(defvar org-web-track-prev-property "WEB_TRACK_PREV"
-  "Property name for last value.")
-(put 'org-web-track-prev-property 'label "PREV")
+(defvar org-web-track-prev-property "TRACK_PREVIOUS_VALUE"
+  "Property name for holding previous value.")
+(put 'org-web-track-prev-property 'label "Previous")
 
-(defvar org-web-track-url-property "WEB_TRACK_URL"
-  "Property name for tracking URL.")
+(defvar org-web-track-url-property "TRACK_URL"
+  "Property name for a URL to track.")
 
-(defvar org-web-track-date-property "WEB_TRACK_AT"
+(defvar org-web-track-date-property "TRACK_LAST_UPDATED_TIME"
   "Property name for the date at which track value.")
-(put 'org-web-track-date-property 'label "DATE")
+(put 'org-web-track-date-property 'label "Updated Time")
 
 (defvar org-web-track-update-timeout 20
   "Time out in second for accessing web site to get values.")
@@ -352,7 +352,7 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
   :group 'org-web-track)
 
 (defvar org-web-track-columns-format
-  (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
+  (apply #'format "%%%sItem %%%s%s(%s [%s]) %%%s(%s)"
          `(,@(mapcar (lambda (w) (if (= 0 w) "" (format "%d" w)))
                      `(,org-web-track-item-column-width
                        ,org-web-track-update-column-width))
@@ -361,7 +361,9 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
            ,(get 'org-web-track-prev-property 'label)
            ,org-web-track-date-property
            ,(get 'org-web-track-date-property 'label)))
-  "Format for columns in `org-agenda' column view.")
+  "Customized function to modify column view for org-web-track.
+
+This function is designed to be set for `org-columns-modify-value-for-display-function'.")
 
 (defun org-web-track-agenda-view ()
   "Dsiplay agenda with column view."
