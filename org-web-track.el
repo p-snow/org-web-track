@@ -300,15 +300,17 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
         rows)
   (org-table-align))
 
-(defun org-agenda-web-track-update ()
-  "Invoke `org-web-track-update' in org agenda mode."
+(defun org-web-track-update-item ()
+  "Update the tracking item in `org-agenda-mode'.
+
+This command provides a way to invoke `org-web-track-update' after `org-web-track-columns'."
   (interactive)
   (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
   (org-agenda-check-type t 'agenda 'todo 'tags 'search)
   (org-agenda-check-no-diary)
   (org-agenda-redo-all)
   (org-agenda-maybe-loop
-   #'org-agenda-web-track-update nil nil nil
+   #'org-web-track-update-item nil nil nil
    (let* ((marker (or (org-get-at-bol 'org-marker)
                       (org-agenda-error)))
           (buffer (marker-buffer marker))
@@ -322,7 +324,9 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
          (funcall-interactively #'org-web-track-update))))))
 
 (defun org-web-track-display-values (column-title values)
-  "Return clean print of current value title in column view is COLUMN-TITLE."
+  "Modify the display of column VALUES for COLUMN-TITLE to be more understandable.
+
+This function is designed to be set for `org-columns-modify-value-for-display-function'."
   (when (string-prefix-p (get 'org-web-track-update-property 'label)
                          column-title)
     (org-web-track-changes (org-entry-get-multivalued-property (point) org-web-track-update-property)
@@ -361,12 +365,10 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
            ,(get 'org-web-track-prev-property 'label)
            ,org-web-track-date-property
            ,(get 'org-web-track-date-property 'label)))
-  "Customized function to modify column view for org-web-track.
+  "Column format for `org-web-track-columns'.")
 
-This function is designed to be set for `org-columns-modify-value-for-display-function'.")
-
-(defun org-web-track-agenda-view ()
-  "Dsiplay agenda with column view."
+(defun org-web-track-columns ()
+  "Provide a column view to help understand the tracking items in `org-web-track-files`."
   (interactive)
   (when (require 'org-colview nil t)
     (let ((org-agenda-files (org-web-track-files))
