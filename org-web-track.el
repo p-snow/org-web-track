@@ -329,21 +329,25 @@ This command provides a way to invoke `org-web-track-update' after `org-web-trac
 This function is designed to be set for `org-columns-modify-value-for-display-function'."
   (when (string-prefix-p (get 'org-web-track-update-property 'label)
                          column-title)
-    (org-web-track-changes (org-entry-get-multivalued-property (point) org-web-track-update-property)
-                           (org-entry-get-multivalued-property (point) org-web-track-prev-property))))
+    (org-web-track-current-changes (point))))
 
-(defun org-web-track-changes (values last-values)
-  "Return a string which represents VALUE along with LAST-VALUE in case of non-nil."
-  (string-join (cl-mapcar (lambda (val last-val)
-                            (concat (and (stringp val)
-                                         val)
-                                    (and (stringp last-val)
-                                         (not (string= val last-val))
-                                         (format " [%s]" last-val))))
-                          values
-                          (or last-values
-                              (make-list (length values) nil)))
-               ", "))
+(defun org-web-track-current-changes (&optional pom format separator)
+  "Return a string that represents the current value changes at POM with respect to FORMAT and SEPARATOR.
+
+If POM is nil, a return value of `point' is used.
+FORMAT defines how to describe the current change for a single target and should
+contain %p and %c as placeholders for the previous value and current value, respectively.
+SEPARATOR is used in between changes for multiple targets."
+  (let* ((cur-val (org-entry-get-multivalued-property (or pom (point)) org-web-track-update-property))
+         (prev-val (org-entry-get-multivalued-property (or pom (point)) org-web-track-prev-property))
+         (n (max 1 (length cur-val) (length prev-val))))
+    (string-join
+     (cl-mapcar (lambda (prev cur)
+                  (format-spec (or format "%c [%p]")
+                               `((?p . ,prev) (?c . ,cur))))
+                (append prev-val (make-list (- n (length prev-val)) ""))
+                (append cur-val (make-list (- n (length cur-val)) "")))
+     (or separator ", "))))
 
 (defcustom org-web-track-item-column-width 0
   "0 means unspecified."
