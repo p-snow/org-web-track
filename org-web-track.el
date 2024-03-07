@@ -85,16 +85,20 @@ or a function that returns a list of files."
     ((and (pred functionp) fun) (funcall fun))
     ((and (pred listp) li) li)))
 
-(defun org-web-track-setup (url)
-  "Setup tracking entry for URL by putting `org-web-track-url-property'.
+(defun org-web-track-initialize (url)
+  "Initialize the entry at point by setting URL to `org-web-track-url-property'.
 
-If there is no selector defined in `org-web-track-selector-alist' for the URL,
-encourage user to custom beforehand"
-  (interactive (list (read-string "Tracking URL: ")))
+If point is positioned before the first org heading, insert a new one above it initially.
+After the URL has been set, try to retrieve a value if there is
+an appropriate selector in `org-web-track-selector-alist'."
+  (interactive (list (read-string "URL: "
+                                  (org-entry-get (point) org-web-track-url-property))))
+  (when (org-before-first-heading-p)
+    (org-insert-heading))
   (org-entry-put (point) org-web-track-url-property url)
   (if (assoc-default url org-web-track-selector-alist #'string-match)
       (org-web-track-update)
-    (user-error "No selector defined for the URL")))
+    (message "No selector for the URL. Please set up `org-web-track-selector-alist'.")))
 
 (defun org-web-track-update (&optional async)
   "Look up the current values and set them to the entry at point.
