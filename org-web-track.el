@@ -116,8 +116,9 @@ Note that ASYNC mode is auxiliary and may not be thoroughly tested."
         (org-web-track-record marker updates)))))
 
 (defun org-web-track-update-all ()
-  "Update all web-track entries that have the `org-web-track-url-property' property in `org-web-track-files',
-and return a list of cons where the car is a marker pointing to the changed entry and the cdr is its values."
+  "Update all track items that have the `org-web-track-url-property' property in `org-web-track-files'.
+
+Return a list of markers pointing to items where new values are obtained and recorded."
   (interactive)
   (delq nil (org-map-entries (lambda ()
                                (call-interactively 'org-web-track-update))
@@ -220,7 +221,8 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
 (defun org-web-track-record (marker updates)
   "Record UPDATES to the entry at MARKER by setting `org-web-track-update-property'.
 
-Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
+Update `org-web-track-date-property' and return MARKER if UPDATES are a new value
+against `org-web-track-update-property'."
   (when (cl-delete-if-not 'stringp updates)
     (let ((values-in-existence
            (or (org-entry-get-multivalued-property marker org-web-track-update-property)
@@ -242,12 +244,12 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
         (if (not values-in-existence)
             (progn (record-current-value)
                    (org-entry-put marker org-web-track-date-property current-time)
-                   (cons marker updates))
+                   marker)
           (if (not (equal updates values-in-existence))
               (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property values-in-existence)
                      (record-current-value)
                      (org-entry-put marker org-web-track-date-property current-time)
-                     (cons marker updates))
+                     marker)
             nil))))))
 
 (defun org-web-track-insert-value-change-table ()
