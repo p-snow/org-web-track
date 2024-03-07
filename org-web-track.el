@@ -301,17 +301,17 @@ Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
         rows)
   (org-table-align))
 
-(defun org-web-track-update-item ()
+(defun org-web-track-agenda-update ()
   "Update the tracking item in `org-agenda-mode'.
 
-This command provides a way to invoke `org-web-track-update' after `org-web-track-columns'."
+This command provides a way to invoke `org-web-track-update' after `org-web-track-agenda-columns'."
   (interactive)
   (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
   (org-agenda-check-type t 'agenda 'todo 'tags 'search)
   (org-agenda-check-no-diary)
   (org-agenda-redo-all)
   (org-agenda-maybe-loop
-   #'org-web-track-update-item nil nil nil
+   #'org-web-track-agenda-update nil nil nil
    (let* ((marker (or (org-get-at-bol 'org-marker)
                       (org-agenda-error)))
           (buffer (marker-buffer marker))
