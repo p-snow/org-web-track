@@ -37,21 +37,22 @@
 (require 'request)
 (require 'enlive)
 (require 'rx)
+(require 'org-colview)
 
 (defvar org-web-track-update-property "TRACK_CURRENT_VALUE"
   "Property name for holding current value.")
-(put 'org-web-track-update-property 'label "Current Value")
+(put 'org-web-track-update-property 'label "CURRENT VALUE")
 
 (defvar org-web-track-prev-property "TRACK_PREVIOUS_VALUE"
   "Property name for holding previous value.")
-(put 'org-web-track-prev-property 'label "Previous")
+(put 'org-web-track-prev-property 'label "PREVIOUS")
 
 (defvar org-web-track-url-property "TRACK_URL"
   "Property name for a URL to track.")
 
 (defvar org-web-track-date-property "TRACK_LAST_UPDATED_TIME"
   "Property name for the date at which track value.")
-(put 'org-web-track-date-property 'label "Updated Time")
+(put 'org-web-track-date-property 'label "UPDATED TIME")
 
 (defvar org-web-track-update-timeout 20
   "Time out in second for accessing web site to get values.")
@@ -327,8 +328,9 @@ This command provides a way to invoke `org-web-track-update' after `org-web-trac
   "Modify the display of column VALUES for COLUMN-TITLE to be more understandable.
 
 This function is designed to be set for `org-columns-modify-value-for-display-function'."
-  (when (string-prefix-p (get 'org-web-track-update-property 'label)
-                         column-title)
+  (when (and (org-entry-get (point) org-web-track-url-property)
+             (string-prefix-p (get 'org-web-track-update-property 'label)
+                              column-title))
     (org-web-track-current-changes (point))))
 
 (defun org-web-track-current-changes (&optional pom format separator)
@@ -345,8 +347,8 @@ SEPARATOR is used in between changes for multiple targets."
      (cl-mapcar (lambda (prev cur)
                   (format-spec (or format "%c [%p]")
                                `((?p . ,prev) (?c . ,cur))))
-                (append prev-val (make-list (- n (length prev-val)) ""))
-                (append cur-val (make-list (- n (length cur-val)) "")))
+                (append prev-val (make-list (- n (length prev-val)) "N/A"))
+                (append cur-val (make-list (- n (length cur-val)) "N/A")))
      (or separator ", "))))
 
 (defcustom org-web-track-item-column-width 0
@@ -360,7 +362,7 @@ SEPARATOR is used in between changes for multiple targets."
   :group 'org-web-track)
 
 (defvar org-web-track-columns-format
-  (apply #'format "%%%sItem %%%s%s(%s [%s]) %%%s(%s)"
+  (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
          `(,@(mapcar (lambda (w) (if (= 0 w) "" (format "%d" w)))
                      `(,org-web-track-item-column-width
                        ,org-web-track-update-column-width))
@@ -369,18 +371,30 @@ SEPARATOR is used in between changes for multiple targets."
            ,(get 'org-web-track-prev-property 'label)
            ,org-web-track-date-property
            ,(get 'org-web-track-date-property 'label)))
-  "Column format for `org-web-track-columns'.")
+  "Columns format for `org-web-track-columns' and `org-web-track-agenda-columns'.")
 
 (defun org-web-track-columns ()
-  "Provide a column view to help understand the tracking items in `org-web-track-files`."
+  "Invoke `org-columns' with `org-web-track-columns-format' to specify COLUMNS-FMT-STRING.
+
+This command provides a columns view to comprehend current information, such as
+changed values and updated time, for tracking items in the current buffer."
   (interactive)
-  (when (require 'org-colview nil t)
-    (let ((org-agenda-files (org-web-track-files))
-          (org-columns-modify-value-for-display-function
-           'org-web-track-display-values)
-          (org-overriding-columns-format org-web-track-columns-format)
-          (org-agenda-view-columns-initially t))
-      (org-tags-view nil (format "%s={.+}" org-web-track-url-property)))))
+  (let ((org-columns-modify-value-for-display-function
+         'org-web-track-display-values))
+    (org-columns nil org-web-track-columns-format)))
+
+(defun org-web-track-agenda-columns ()
+  "Invoke `org-agenda-columns' with `org-web-track-columns-format' to specify COLUMNS-FMT-STRING.
+
+This command provides an agenda columns view to comprehend current information,
+such as changed values and updated time, for tracking items in `org-web-track-files'."
+  (interactive)
+  (let ((org-columns-modify-value-for-display-function
+         'org-web-track-display-values)
+        (org-overriding-columns-format org-web-track-columns-format)
+        (org-agenda-files (org-web-track-files))
+        (org-agenda-view-columns-initially t))
+    (org-tags-view nil (format "%s={.+}" org-web-track-url-property))))
 
 (defun org-web-track-test-tracker (selector url)
   "Return the values acquired by applying SELECTOR to the HTTP response for the URL.
