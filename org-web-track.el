@@ -218,37 +218,35 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
       (string-trim val))))
 
 (defun org-web-track-record (marker updates)
-  "Apply UPDATES to an entry at MARKER by setting the
-`org-web-track-update-property' property.
+  "Record UPDATES to the entry at MARKER by setting `org-web-track-update-property'.
 
 Return a cons (MARKER . UPDATES) only if UPDATES has been set to a new value."
   (when (cl-delete-if-not 'stringp updates)
-    (let ((incumbent-values
+    (let ((values-in-existence
            (or (org-entry-get-multivalued-property marker org-web-track-update-property)
                (when-let ((single-val (org-entry-get marker org-web-track-update-property)))
                  (make-list (length updates) single-val))))
-          (update-time (format-time-string (org-time-stamp-format t t))))
-      (cl-labels ((update-value ()
+          (current-time (format-time-string (org-time-stamp-format t t))))
+      (cl-labels ((record-current-value ()
                     (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
                     (org-with-point-at marker
                       (setf (alist-get 'track org-log-note-headings)
-                            "Track %-12s on %t")
+                            "Track %-12s %t")
                       (prog1 (org-add-log-setup 'track
                                                 ;; work around for stuck process in
                                                 ;; string conversion at `org-store-log-note'
                                                 (replace-regexp-in-string "\\(?:%20\\([DSTUdstu]\\)\\)" "_\\1"
                                                                           (org-entry-get (point) org-web-track-update-property))
-                                                nil 'state update-time)
-                        (run-hooks 'post-command-hook))))
-                  (update-last-value ()
-                    (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property incumbent-values)))
-        (org-entry-put marker org-web-track-date-property update-time)
-        (if (not incumbent-values)
-            (progn (update-value)
+                                                nil 'state current-time)
+                        (run-hooks 'post-command-hook)))))
+        (if (not values-in-existence)
+            (progn (record-current-value)
+                   (org-entry-put marker org-web-track-date-property current-time)
                    (cons marker updates))
-          (if (not (equal updates incumbent-values))
-              (progn (update-last-value)
-                     (update-value)
+          (if (not (equal updates values-in-existence))
+              (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property values-in-existence)
+                     (record-current-value)
+                     (org-entry-put marker org-web-track-date-property current-time)
                      (cons marker updates))
             nil))))))
 
