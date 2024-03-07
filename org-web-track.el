@@ -33,11 +33,11 @@
 
 (require 'org)
 (require 'org-agenda)
+(require 'org-colview)
 (require 'url-http)
 (require 'request)
 (require 'enlive)
 (require 'rx)
-(require 'org-colview)
 
 (defvar org-web-track-update-property "TRACK_CURRENT_VALUE"
   "Property name for holding current value.")
@@ -393,8 +393,28 @@ such as changed values and updated time, for tracking items in `org-web-track-fi
          'org-web-track-display-values)
         (org-overriding-columns-format org-web-track-columns-format)
         (org-agenda-files (org-web-track-files))
+        (org-agenda-sorting-strategy '((tags user-defined-up)))
+        (org-agenda-cmp-user-defined 'org-web-track-cmp-updated-time)
         (org-agenda-view-columns-initially t))
     (org-tags-view nil (format "%s={.+}" org-web-track-url-property))))
+
+(defun org-web-track-cmp-updated-time (a b)
+  "Compare A and B with respect to their 'org-web-track-date-property' property.
+Return -1 if A has an earlier time stamp indicating that the track item was
+updated before B.
+Return +1 if B is earlier, and nil if they are equal.
+
+This function is intended to be set for `org-agenda-cmp-user-defined'."
+  (cl-labels ((updated-time (ent)
+                (ignore-errors
+                  (encode-time
+                   (org-parse-time-string
+                    (org-entry-get (get-text-property 0 'org-hd-marker ent)
+                                   org-web-track-date-property))))))
+    (let ((ta (updated-time a))
+          (tb (updated-time b)))
+      (cond ((if ta (and tb (time-less-p ta tb)) tb) -1)
+            ((if tb (and ta (time-less-p tb ta)) ta) +1)))))
 
 (defun org-web-track-test-selector (selector url)
   "Return the values acquired by applying SELECTOR to the HTTP response for the URL.
