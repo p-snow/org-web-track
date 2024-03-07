@@ -111,13 +111,13 @@ Note that ASYNC mode is auxiliary and may not be thoroughly tested."
     (if async
         (apply #'funcall
                #'org-web-track-retrieve-values
-               track-url async #'org-web-track-record nil (list marker))
+               track-url async #'org-web-track-populate-values nil (list marker))
       (let ((updates (apply (if (called-interactively-p 'any)
                                 #'funcall-interactively
                               #'funcall)
                             #'org-web-track-retrieve-values
                             track-url async)))
-        (org-web-track-record marker updates)))))
+        (org-web-track-populate-values marker updates)))))
 
 (defun org-web-track-update-all ()
   "Update all track items that have the `org-web-track-url-property' property in `org-web-track-files'.
@@ -222,19 +222,19 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
     (when (stringp val)
       (string-trim val))))
 
-(defun org-web-track-record (marker updates)
-  "Record UPDATES to the entry at MARKER by setting `org-web-track-update-property'.
+(defun org-web-track-populate-values (marker values)
+  "Record VALUES to the entry at MARKER by setting `org-web-track-update-property'.
 
-Update `org-web-track-date-property' and return MARKER if UPDATES are a new value
+Update `org-web-track-date-property' and return MARKER if VALUES are a new value
 against `org-web-track-update-property'."
-  (when (cl-delete-if-not 'stringp updates)
+  (when (cl-delete-if-not 'stringp values)
     (let ((values-in-existence
            (or (org-entry-get-multivalued-property marker org-web-track-update-property)
                (when-let ((single-val (org-entry-get marker org-web-track-update-property)))
-                 (make-list (length updates) single-val))))
+                 (make-list (length values) single-val))))
           (current-time (format-time-string (org-time-stamp-format t t))))
       (cl-labels ((record-current-value ()
-                    (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
+                    (apply #'org-entry-put-multivalued-property marker org-web-track-update-property values)
                     (org-with-point-at marker
                       (setf (alist-get 'track org-log-note-headings)
                             "Track %-12s %t")
@@ -249,7 +249,7 @@ against `org-web-track-update-property'."
             (progn (record-current-value)
                    (org-entry-put marker org-web-track-date-property current-time)
                    marker)
-          (if (not (equal updates values-in-existence))
+          (if (not (equal values values-in-existence))
               (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property values-in-existence)
                      (record-current-value)
                      (org-entry-put marker org-web-track-date-property current-time)
