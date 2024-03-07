@@ -396,7 +396,7 @@ such as changed values and updated time, for tracking items in `org-web-track-fi
         (org-agenda-view-columns-initially t))
     (org-tags-view nil (format "%s={.+}" org-web-track-url-property))))
 
-(defun org-web-track-test-tracker (selector url)
+(defun org-web-track-test-selector (selector url)
   "Return the values acquired by applying SELECTOR to the HTTP response for the URL.
 
 End users can use this function as a SELECTOR tester before setting up
