@@ -344,16 +344,14 @@ If POM is nil, a return value of `point' is used.
 FORMAT defines how to describe the current change for a single target and should
 contain %p and %c as placeholders for the previous value and current value, respectively.
 SEPARATOR is used in between changes for multiple targets."
-  (let* ((cur-val (org-entry-get-multivalued-property (or pom (point)) org-web-track-update-property))
-         (prev-val (org-entry-get-multivalued-property (or pom (point)) org-web-track-prev-property))
-         (n (max 1 (length cur-val) (length prev-val))))
-    (string-join
-     (cl-mapcar (lambda (prev cur)
-                  (format-spec (or format "%c [%p]")
-                               `((?p . ,prev) (?c . ,cur))))
-                (append prev-val (make-list (- n (length prev-val)) "N/A"))
-                (append cur-val (make-list (- n (length cur-val)) "N/A")))
-     (or separator ", "))))
+  (let (chnages)
+    (cl-do ((curr-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-update-property) (cdr curr-vals))
+            (prev-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-prev-property) (cdr prev-vals)))
+        ((not (or curr-vals prev-vals)) (string-join (nreverse chnages) (or separator ", ")))
+      (push (format-spec (or format "%c [%p]")
+                         `((?p . ,(or (car prev-vals) "N/A"))
+                           (?c . ,(or (car curr-vals) "N/A"))))
+            chnages))))
 
 (defcustom org-web-track-item-column-width 0
   "0 means unspecified."
