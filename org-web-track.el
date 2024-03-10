@@ -133,20 +133,20 @@ Return a list of markers pointing to items where new values are obtained and rec
   "Retrieve values by accessing the URL.
 
 If ASYNC is non-nil, this process will be executed asynchronously (Synchronous access is default)."
-  (let ((the-selector
-         (assoc-default url org-web-track-selector-alist
-                        (lambda (car key)
-                          (cond
-                           ((functionp car) (funcall car key))
-                           ((stringp car) (string-match-p car key))))))
-        (request-backend 'url-retrieve)
-        (request-curl-options
-         `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
-        (values nil))
-    (unless the-selector
+  (pcase-let ((`(,selectors . (,filter))
+               (assoc-default url org-web-track-selector-alist
+                              (lambda (car key)
+                                (cond
+                                 ((functionp car) (funcall car key))
+                                 ((stringp car) (string-match-p car key))))))
+              (request-backend 'url-retrieve)
+              (request-curl-options
+               `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
+              (values nil))
+    (unless selectors
       (and (functionp on-fail)
            (progn (apply on-fail marker)
-                  (user-error "No tracker available for this entry"))))
+                  (user-error "No selector available for this entry"))))
     (request url
       :sync (not async)
       :timeout org-web-track-update-timeout
@@ -161,17 +161,22 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
                 (coding-sys (intern (downcase content-charset)))
                 (content (request-response-data response)))
            (setq values
-                 (mapcar (lambda (selector)
-                           (funcall #'org-web-track--select-value
-                                    (when (string-match (rx (or (seq (or "application/" "text/")
-                                                                     (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
-                                                        content-type)
-                                      (intern (match-string 1 content-type)))
-                                    (decode-coding-string content
-                                                          (and (member coding-sys (coding-system-list))
-                                                               coding-sys))
-                                    selector))
-                         (ensure-list the-selector))))))
+                 (ensure-list
+                  (apply
+                   (or filter 'list)
+                   (mapcar (lambda (selector)
+                             (funcall #'org-web-track--select-value
+                                      (when (string-match (rx (or (seq (or "application/" "text/")
+                                                                       (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
+                                                          content-type)
+                                        (intern (match-string 1 content-type)))
+                                      (decode-coding-string content
+                                                            (and (member coding-sys (coding-system-list))
+                                                                 coding-sys))
+                                      selector))
+                           (if (functionp selectors)
+                               (list selectors)
+                             (ensure-list selectors)))))))))
       :error
       (cl-function
        (lambda (&key response &allow-other-keys)
@@ -187,7 +192,7 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
                   (funcall on-success marker values))
            (and (functionp on-fail)
                 (apply on-fail marker))
-           (message "No value available at the end of tracker appliance")))))
+           (message "No value available at the end of selector appliance")))))
     (unless async
       values)))
 
@@ -418,15 +423,17 @@ This function is intended to be set for `org-agenda-cmp-user-defined'."
       (cond ((if ta (and tb (time-less-p ta tb)) tb) -1)
             ((if tb (and ta (time-less-p tb ta)) ta) +1)))))
 
-(defun org-web-track-test-selector (selector url)
-  "Return the values acquired by applying SELECTOR to the HTTP response for the URL.
+(defun org-web-track-test-selector (url selector &optional filter)
+  "Return the values acquired by applying SELECTOR and optionally FILTER
+to the HTTP response for the URL.
 
-End users can use this function as a SELECTOR tester before setting up
-`org-web-track-selector-alist' in advance."
+This function can be used to test SELECTOR and FILTER for `org-web-track-selector-alist'.
+SELECTOR must be either a single selector or a list of selectors.
+Selectors and filters are described in `org-web-track-selector-alist'."
   (let ((org-web-track-selector-alist
-         (append `((,(regexp-quote url) ,selector))
+         (append `((,(regexp-quote url) ,selector ,filter))
                  org-web-track-selector-alist)))
-    (princ (org-web-track-retrieve-values url nil nil))))
+    (org-web-track-retrieve-values url)))
 
 (provide 'org-web-track)
 
