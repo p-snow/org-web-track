@@ -41,20 +41,20 @@
 
 ;;;; Variables
 
-(defvar org-web-track-update-property "TRACK_CURRENT_VALUE"
+(defvar org-web-track-value "TRACK_CURRENT_VALUE"
   "Property name for holding current value.")
-(put 'org-web-track-update-property 'label "CURRENT VALUE")
+(put 'org-web-track-value 'label "CURRENT VALUE")
 
-(defvar org-web-track-prev-property "TRACK_PREVIOUS_VALUE"
+(defvar org-web-track-prev-value "TRACK_PREVIOUS_VALUE"
   "Property name for holding previous value.")
-(put 'org-web-track-prev-property 'label "PREVIOUS")
+(put 'org-web-track-prev-value 'label "PREVIOUS")
 
-(defvar org-web-track-url-property "TRACK_URL"
+(defvar org-web-track-url "TRACK_URL"
   "Property name for a URL to track.")
 
-(defvar org-web-track-date-property "TRACK_LAST_UPDATED_TIME"
+(defvar org-web-track-updated "TRACK_LAST_UPDATED_TIME"
   "Property name for the date at which track value.")
-(put 'org-web-track-date-property 'label "UPDATED TIME")
+(put 'org-web-track-updated 'label "UPDATED TIME")
 
 (defvar org-web-track-update-timeout 20
   "Time out in second for accessing web site to get values.")
@@ -95,16 +95,16 @@ or a function that returns a list of files."
     ((and (pred listp) li) li)))
 
 (defun org-web-track-initialize (url)
-  "Initialize the entry at point by setting URL to `org-web-track-url-property'.
+  "Initialize the entry at point by setting URL to `org-web-track-url'.
 
 If point is positioned before the first org heading, insert a new one above it initially.
 After the URL has been set, try to retrieve a value if there is
 an appropriate selector in `org-web-track-selector-alist'."
   (interactive (list (read-string "URL: "
-                                  (org-entry-get (point) org-web-track-url-property))))
+                                  (org-entry-get (point) org-web-track-url))))
   (when (org-before-first-heading-p)
     (org-insert-heading))
-  (org-entry-put (point) org-web-track-url-property url)
+  (org-entry-put (point) org-web-track-url url)
   (if (assoc-default url org-web-track-selector-alist #'string-match)
       (org-web-track-update-entry)
     (message "No selector for the URL. Please set up `org-web-track-selector-alist'.")))
@@ -114,29 +114,29 @@ an appropriate selector in `org-web-track-selector-alist'."
 
 If called interactively, update the org entry at point.
 
-This command looks up the current values and updates 'org-web-track-update-property'
-and 'org-web-track-prev-property' if the values have been changed,
+This command looks up the current values and updates 'org-web-track-value'
+and 'org-web-track-prev-value' if the values have been changed,
 then logs them using org's logging feature.
 The placement of logs respects 'org-log-into-drawer'."
   (interactive (list (point-marker)))
-  (when-let* ((track-url (org-entry-get (point) org-web-track-url-property))
+  (when-let* ((track-url (org-entry-get (point) org-web-track-url))
               (updates (funcall #'org-web-track-retrieve-values
                                 track-url)))
     (let ((values-in-existence
-           (or (org-entry-get-multivalued-property marker org-web-track-update-property)
-               (when-let ((single-val (org-entry-get marker org-web-track-update-property)))
+           (or (org-entry-get-multivalued-property marker org-web-track-value)
+               (when-let ((single-val (org-entry-get marker org-web-track-value)))
                  (make-list (length updates) single-val))))
           (current-time (format-time-string (org-time-stamp-format t t)))
           (org-log-note-headings (append '((track . "Update %-12s %t"))
                                          org-log-note-headings)))
       (if (not values-in-existence)
-          (progn (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
-                 (org-entry-put marker org-web-track-date-property current-time)
+          (progn (apply #'org-entry-put-multivalued-property marker org-web-track-value updates)
+                 (org-entry-put marker org-web-track-updated current-time)
                  marker)
         (if (not (equal updates values-in-existence))
-            (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property values-in-existence)
-                   (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
-                   (org-entry-put marker org-web-track-date-property current-time)
+            (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-value values-in-existence)
+                   (apply #'org-entry-put-multivalued-property marker org-web-track-value updates)
+                   (org-entry-put marker org-web-track-updated current-time)
                    marker)
           nil)))))
 
@@ -147,7 +147,7 @@ Return a list of markers pointing to items where the value has been updated."
   (interactive)
   (delq nil (org-map-entries (lambda ()
                                (call-interactively 'org-web-track-update-entry))
-                             (format "%s={.+}" org-web-track-url-property)
+                             (format "%s={.+}" org-web-track-url)
                              (org-web-track-files))))
 
 (defun org-web-track-retrieve-values (url &optional async on-success on-fail marker)
@@ -320,8 +320,8 @@ This command provides a way to invoke `org-web-track-update-entry' after `org-we
   "Modify the display of column VALUES for COLUMN-TITLE to be more understandable.
 
 This function is designed to be set for `org-columns-modify-value-for-display-function'."
-  (when (and (org-entry-get (point) org-web-track-url-property)
-             (string-prefix-p (get 'org-web-track-update-property 'label)
+  (when (and (org-entry-get (point) org-web-track-url)
+             (string-prefix-p (get 'org-web-track-value 'label)
                               column-title))
     (org-web-track-current-changes (point))))
 
@@ -333,8 +333,8 @@ FORMAT defines how to describe the current change for a single target and should
 contain %p and %c as placeholders for the previous value and current value, respectively.
 SEPARATOR is used in between changes for multiple targets."
   (let (chnages)
-    (cl-do ((curr-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-update-property) (cdr curr-vals))
-            (prev-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-prev-property) (cdr prev-vals)))
+    (cl-do ((curr-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-value) (cdr curr-vals))
+            (prev-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-prev-value) (cdr prev-vals)))
         ((not (or curr-vals prev-vals)) (string-join (nreverse chnages) (or separator ", ")))
       (push (format-spec (or format "%c [%p]")
                          `((?p . ,(or (car prev-vals) "N/A"))
@@ -356,11 +356,11 @@ SEPARATOR is used in between changes for multiple targets."
          `(,@(mapcar (lambda (w) (if (= 0 w) "" (format "%d" w)))
                      `(,org-web-track-item-column-width
                        ,org-web-track-update-column-width))
-           ,org-web-track-update-property
-           ,(get 'org-web-track-update-property 'label)
-           ,(get 'org-web-track-prev-property 'label)
-           ,org-web-track-date-property
-           ,(get 'org-web-track-date-property 'label)))
+           ,org-web-track-value
+           ,(get 'org-web-track-value 'label)
+           ,(get 'org-web-track-prev-value 'label)
+           ,org-web-track-updated
+           ,(get 'org-web-track-updated 'label)))
   "Columns format for `org-web-track-columns' and `org-web-track-agenda-columns'.")
 
 (defun org-web-track-columns ()
@@ -386,10 +386,10 @@ such as changed values and updated time, for tracking items in `org-web-track-fi
         (org-agenda-sorting-strategy '((tags user-defined-up)))
         (org-agenda-cmp-user-defined 'org-web-track-cmp-updated-time)
         (org-agenda-view-columns-initially t))
-    (org-tags-view nil (format "%s={.+}" org-web-track-url-property))))
+    (org-tags-view nil (format "%s={.+}" org-web-track-url))))
 
 (defun org-web-track-cmp-updated-time (a b)
-  "Compare A and B with respect to their 'org-web-track-date-property' property.
+  "Compare A and B with respect to their 'org-web-track-updated' property.
 Return -1 if A has an earlier time stamp indicating that the track item was
 updated before B.
 Return +1 if B is earlier, and nil if they are equal.
@@ -400,7 +400,7 @@ This function is intended to be set for `org-agenda-cmp-user-defined'."
                   (encode-time
                    (org-parse-time-string
                     (org-entry-get (get-text-property 0 'org-hd-marker ent)
-                                   org-web-track-date-property))))))
+                                   org-web-track-updated))))))
     (let ((ta (updated-time a))
           (tb (updated-time b)))
       (cond ((if ta (and tb (time-less-p ta tb)) tb) -1)
