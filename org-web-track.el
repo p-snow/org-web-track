@@ -109,26 +109,36 @@ an appropriate selector in `org-web-track-selector-alist'."
       (org-web-track-update-entry)
     (message "No selector for the URL. Please set up `org-web-track-selector-alist'.")))
 
-(defun org-web-track-update-entry (&optional async)
-  "Update the tracking entry at point.
+(defun org-web-track-update-entry (&optional marker)
+  "Update the tracking item at MARKER.
+
+If called interactively, update the org entry at point.
 
 This command looks up the current values and updates 'org-web-track-update-property'
 and 'org-web-track-prev-property' if the values have been changed,
 then logs them using org's logging feature.
 The placement of logs respects 'org-log-into-drawer'."
-  (interactive "P")
-  (let ((track-url (org-entry-get (point) org-web-track-url-property))
-        (marker (point-marker)))
-    (if async
-        (apply #'funcall
-               #'org-web-track-retrieve-values
-               track-url async #'org-web-track-populate-values nil (list marker))
-      (let ((updates (apply (if (called-interactively-p 'any)
-                                #'funcall-interactively
-                              #'funcall)
-                            #'org-web-track-retrieve-values
-                            track-url async)))
-        (org-web-track-populate-values marker updates)))))
+  (interactive (list (point-marker)))
+  (when-let* ((track-url (org-entry-get (point) org-web-track-url-property))
+              (updates (funcall #'org-web-track-retrieve-values
+                                track-url)))
+    (let ((values-in-existence
+           (or (org-entry-get-multivalued-property marker org-web-track-update-property)
+               (when-let ((single-val (org-entry-get marker org-web-track-update-property)))
+                 (make-list (length updates) single-val))))
+          (current-time (format-time-string (org-time-stamp-format t t)))
+          (org-log-note-headings (append '((track . "Update %-12s %t"))
+                                         org-log-note-headings)))
+      (if (not values-in-existence)
+          (progn (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
+                 (org-entry-put marker org-web-track-date-property current-time)
+                 marker)
+        (if (not (equal updates values-in-existence))
+            (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property values-in-existence)
+                   (apply #'org-entry-put-multivalued-property marker org-web-track-update-property updates)
+                   (org-entry-put marker org-web-track-date-property current-time)
+                   marker)
+          nil)))))
 
 (defun org-web-track-update-files ()
   "Update all track items (org entries) in `org-web-track-files'.
@@ -204,8 +214,7 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
            (and (functionp on-fail)
                 (apply on-fail marker))
            (message "No value available at the end of selector appliance")))))
-    (unless async
-      values)))
+    (unless async values)))
 
 (defmacro org-web-track--with-content-buffer (content &rest body)
   "Execute BODY in the temporary buffer where CONTENT is inserted."
@@ -238,40 +247,6 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
     (when (stringp val)
       (string-trim val))))
 
-(defun org-web-track-populate-values (marker values)
-  "Record VALUES to the entry at MARKER by setting `org-web-track-update-property'.
-
-Update `org-web-track-date-property' and return MARKER if VALUES are a new value
-against `org-web-track-update-property'."
-  (when (cl-delete-if-not 'stringp values)
-    (let ((values-in-existence
-           (or (org-entry-get-multivalued-property marker org-web-track-update-property)
-               (when-let ((single-val (org-entry-get marker org-web-track-update-property)))
-                 (make-list (length values) single-val))))
-          (current-time (format-time-string (org-time-stamp-format t t))))
-      (cl-labels ((record-current-value ()
-                    (apply #'org-entry-put-multivalued-property marker org-web-track-update-property values)
-                    (org-with-point-at marker
-                      (setf (alist-get 'track org-log-note-headings)
-                            "Track %-12s %t")
-                      (prog1 (org-add-log-setup 'track
-                                                ;; work around for stuck process in
-                                                ;; string conversion at `org-store-log-note'
-                                                (replace-regexp-in-string "\\(?:%20\\([DSTUdstu]\\)\\)" "_\\1"
-                                                                          (org-entry-get (point) org-web-track-update-property))
-                                                nil 'state current-time)
-                        (run-hooks 'post-command-hook)))))
-        (if (not values-in-existence)
-            (progn (record-current-value)
-                   (org-entry-put marker org-web-track-date-property current-time)
-                   marker)
-          (if (not (equal values values-in-existence))
-              (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-property values-in-existence)
-                     (record-current-value)
-                     (org-entry-put marker org-web-track-date-property current-time)
-                     marker)
-            nil))))))
-
 (defun org-web-track-insert-log-table ()
   "Insert a table whose row represents value change at the time."
   (interactive)
@@ -282,7 +257,7 @@ against `org-web-track-update-property'."
        (org-fold-show-all)
        (let* ((case-fold-search t)
               (subtree-end (save-excursion (org-end-of-subtree)))
-              (re (concat (rx "- Track "
+              (re (concat (rx (or "Update" "Track") (+ space)
                               "\"" (group (+ not-newline)) "\""
                               (+ space) (opt "on") (+ space))
                           org-ts-regexp-inactive))
