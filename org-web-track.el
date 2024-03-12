@@ -106,14 +106,16 @@ an appropriate selector in `org-web-track-selector-alist'."
     (org-insert-heading))
   (org-entry-put (point) org-web-track-url-property url)
   (if (assoc-default url org-web-track-selector-alist #'string-match)
-      (org-web-track-update)
+      (org-web-track-update-entry)
     (message "No selector for the URL. Please set up `org-web-track-selector-alist'.")))
 
-(defun org-web-track-update (&optional async)
-  "Look up the current values and set them to the entry at point.
+(defun org-web-track-update-entry (&optional async)
+  "Update the tracking entry at point.
 
-This command will block the main Emacs thread unless ASYNC is set to non-nil.
-Note that ASYNC mode is auxiliary and may not be thoroughly tested."
+This command looks up the current values and updates 'org-web-track-update-property'
+and 'org-web-track-prev-property' if the values have been changed,
+then logs them using org's logging feature.
+The placement of logs respects 'org-log-into-drawer'."
   (interactive "P")
   (let ((track-url (org-entry-get (point) org-web-track-url-property))
         (marker (point-marker)))
@@ -134,7 +136,7 @@ Note that ASYNC mode is auxiliary and may not be thoroughly tested."
 Return a list of markers pointing to items where new values are obtained and recorded."
   (interactive)
   (delq nil (org-map-entries (lambda ()
-                               (call-interactively 'org-web-track-update))
+                               (call-interactively 'org-web-track-update-entry))
                              (format "%s={.+}" org-web-track-url-property)
                              (org-web-track-files))))
 
@@ -319,7 +321,7 @@ against `org-web-track-update-property'."
 (defun org-web-track-agenda-update ()
   "Update the tracking item in `org-agenda-mode'.
 
-This command provides a way to invoke `org-web-track-update' after `org-web-track-agenda-columns'."
+This command provides a way to invoke `org-web-track-update-entry' after `org-web-track-agenda-columns'."
   (interactive)
   (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
   (org-agenda-check-type t 'agenda 'todo 'tags 'search)
@@ -337,7 +339,7 @@ This command provides a way to invoke `org-web-track-update' after `org-web-trac
          (widen)
          (org-show-all)
          (goto-char pos)
-         (funcall-interactively #'org-web-track-update))))))
+         (funcall-interactively #'org-web-track-update-entry))))))
 
 (defun org-web-track-display-values (column-title values)
   "Modify the display of column VALUES for COLUMN-TITLE to be more understandable.
