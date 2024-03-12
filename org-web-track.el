@@ -130,10 +130,10 @@ The placement of logs respects 'org-log-into-drawer'."
                             track-url async)))
         (org-web-track-populate-values marker updates)))))
 
-(defun org-web-track-update-all ()
-  "Update all track items that have the `org-web-track-url-property' property in `org-web-track-files'.
+(defun org-web-track-update-files ()
+  "Update all track items (org entries) in `org-web-track-files'.
 
-Return a list of markers pointing to items where new values are obtained and recorded."
+Return a list of markers pointing to items where the value has been updated."
   (interactive)
   (delq nil (org-map-entries (lambda ()
                                (call-interactively 'org-web-track-update-entry))
