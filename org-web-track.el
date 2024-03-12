@@ -88,6 +88,17 @@ or a function that returns a list of files."
           (function))
   :group 'org-web-track)
 
+(defcustom org-web-track-item-column-width 0
+  "0 means unspecified."
+  :type 'natnum
+  :group 'org-web-track)
+
+(defcustom org-web-track-update-column-width 0
+  "0 means unspecified."
+  :type 'natnum
+  :group 'org-web-track)
+
+
 (defun org-web-track-files ()
   "Return a list of files that contain tracking entries."
   (pcase org-web-track-files
@@ -340,16 +351,6 @@ SEPARATOR is used in between changes for multiple targets."
                          `((?p . ,(or (car prev-vals) "N/A"))
                            (?c . ,(or (car curr-vals) "N/A"))))
             chnages))))
-
-(defcustom org-web-track-item-column-width 0
-  "0 means unspecified."
-  :type 'natnum
-  :group 'org-web-track)
-
-(defcustom org-web-track-update-column-width 0
-  "0 means unspecified."
-  :type 'natnum
-  :group 'org-web-track)
 
 (defvar org-web-track-columns-format
   (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
