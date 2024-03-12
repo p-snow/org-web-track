@@ -270,24 +270,21 @@ against `org-web-track-update-property'."
                      marker)
             nil))))))
 
-(defun org-web-track-insert-value-change-table ()
+(defun org-web-track-insert-log-table ()
   "Insert a table whose row represents value change at the time."
   (interactive)
   (let ((table-rows))
     (org-with-wide-buffer
      (org-save-outline-visibility t
        (org-back-to-heading t)
-       (org-fold-show-all '(drawers))
+       (org-fold-show-all)
        (let* ((case-fold-search t)
-              (date (org-entry-get (point) org-web-track-date-property))
-              (values (org-entry-get-multivalued-property (point) org-web-track-update-property))
-              (drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
+              (subtree-end (save-excursion (org-end-of-subtree)))
               (re (concat (rx "- Track "
                               "\"" (group (+ not-newline)) "\""
                               (+ space) (opt "on") (+ space))
                           org-ts-regexp-inactive))
-              (end-mkr (set-marker (mark-marker) drawer-end)))
-         (goto-char (match-beginning 0))
+              (end-mkr (set-marker (mark-marker) subtree-end)))
          (while (re-search-forward re (marker-position end-mkr) t)
            (push `(,(match-string-no-properties 2)
                    ,@(mapcar #'org-entry-restore-space (split-string (match-string-no-properties 1))))
