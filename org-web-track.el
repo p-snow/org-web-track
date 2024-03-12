@@ -39,6 +39,8 @@
 (require 'enlive)
 (require 'rx)
 
+;;;; Variables
+
 (defvar org-web-track-update-property "TRACK_CURRENT_VALUE"
   "Property name for holding current value.")
 (put 'org-web-track-update-property 'label "CURRENT VALUE")
@@ -56,6 +58,13 @@
 
 (defvar org-web-track-update-timeout 20
   "Time out in second for accessing web site to get values.")
+
+;;;; Customization
+
+(defgroup org-web-track nil
+  "Options for `org-web-track'."
+  :group 'org
+  :link '(url-link "https://github.com/p-snow/org-web-track"))
 
 (defcustom org-web-track-selector-alist nil
   "An alist of selectors to obtain tracking data.
