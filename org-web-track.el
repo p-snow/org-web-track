@@ -130,26 +130,32 @@ and 'org-web-track-prev-value' if the values have been changed,
 then logs them using org's logging feature.
 The placement of logs respects 'org-log-into-drawer'."
   (interactive (list (point-marker)))
-  (when-let* ((track-url (org-entry-get (point) org-web-track-url))
+  (when-let* ((track-url (org-entry-get marker org-web-track-url))
               (updates (funcall #'org-web-track-retrieve-values
-                                track-url)))
+                                track-url))
+              (current-time (format-time-string (org-time-stamp-format t t)))
+              (org-log-note-headings (append '((update . "Update %-12s %t"))
+                                             org-log-note-headings)))
     (let ((values-in-existence
            (or (org-entry-get-multivalued-property marker org-web-track-value)
                (when-let ((single-val (org-entry-get marker org-web-track-value)))
-                 (make-list (length updates) single-val))))
-          (current-time (format-time-string (org-time-stamp-format t t)))
-          (org-log-note-headings (append '((track . "Update %-12s %t"))
-                                         org-log-note-headings)))
-      (if (not values-in-existence)
-          (progn (apply #'org-entry-put-multivalued-property marker org-web-track-value updates)
-                 (org-entry-put marker org-web-track-updated current-time)
-                 marker)
-        (if (not (equal updates values-in-existence))
-            (progn (apply #'org-entry-put-multivalued-property marker org-web-track-prev-value values-in-existence)
-                   (apply #'org-entry-put-multivalued-property marker org-web-track-value updates)
-                   (org-entry-put marker org-web-track-updated current-time)
-                   marker)
-          nil)))))
+                 (make-list (length updates) single-val)))))
+      (when (or (null values-in-existence)
+                (and (not (equal updates values-in-existence))
+                     (apply #'org-entry-put-multivalued-property
+                            marker org-web-track-prev-value values-in-existence)))
+        (apply #'org-entry-put-multivalued-property
+               marker org-web-track-value updates)
+        (org-with-point-at marker
+          (org-add-log-setup 'update
+                             ;; work around for stuck process in
+                             ;; string conversion at `org-store-log-note'
+                             (replace-regexp-in-string "\\(?:%20\\([DSTUdstu]\\)\\)" "_\\1"
+                                                       (org-entry-get (point) org-web-track-value))
+                             nil 'state current-time)
+          (run-hooks 'post-command-hook))
+        (org-entry-put marker org-web-track-updated current-time)
+        marker))))
 
 (defun org-web-track-update-files ()
   "Update all track items (org entries) in `org-web-track-files'.
@@ -157,7 +163,7 @@ The placement of logs respects 'org-log-into-drawer'."
 Return a list of markers pointing to items where the value has been updated."
   (interactive)
   (delq nil (org-map-entries (lambda ()
-                               (call-interactively 'org-web-track-update-entry))
+                               (org-web-track-update-entry (point-marker)))
                              (format "%s={.+}" org-web-track-url)
                              (org-web-track-files))))
 
