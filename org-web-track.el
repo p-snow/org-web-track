@@ -262,8 +262,10 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
                (enlive-text (enlive-query (enlive-parse content)
                                           selector))))))
     (if (stringp val)
-        (string-trim val)
-      "")))
+        (if (string-blank-p val)
+            " "
+          (string-trim val))
+      " ")))
 
 (defun org-web-track-insert-log-table ()
   "Insert a table whose row represents value change at the time."
