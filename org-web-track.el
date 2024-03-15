@@ -279,7 +279,7 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
               (subtree-end (save-excursion (org-end-of-subtree)))
               (re (concat (rx (or "Update" "Track") (+ space)
                               "\"" (group (+ not-newline)) "\""
-                              (+ space) (opt "on") (+ space))
+                              (+ space) (opt "on") (* space))
                           org-ts-regexp-inactive))
               (end-mkr (set-marker (mark-marker) subtree-end)))
          (while (re-search-forward re (marker-position end-mkr) t)
