@@ -202,19 +202,20 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
                  (ensure-list
                   (apply
                    (or filter 'list)
-                   (mapcar (lambda (selector)
-                             (funcall #'org-web-track--select-value
-                                      (when (string-match (rx (or (seq (or "application/" "text/")
-                                                                       (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
-                                                          content-type)
-                                        (intern (match-string 1 content-type)))
-                                      (decode-coding-string content
-                                                            (and (member coding-sys (coding-system-list))
-                                                                 coding-sys))
-                                      selector))
-                           (if (functionp selectors)
-                               (list selectors)
-                             (ensure-list selectors)))))))))
+                   (flatten-list
+                    (mapcar (lambda (selector)
+                              (funcall #'org-web-track--select-value
+                                       (when (string-match (rx (or (seq (or "application/" "text/")
+                                                                        (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
+                                                           content-type)
+                                         (intern (match-string 1 content-type)))
+                                       (decode-coding-string content
+                                                             (and (member coding-sys (coding-system-list))
+                                                                  coding-sys))
+                                       selector))
+                            (if (functionp selectors)
+                                (list selectors)
+                              (ensure-list selectors))))))))))
       :error
       (cl-function
        (lambda (&key response &allow-other-keys)
@@ -261,11 +262,14 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
                     (eq format 'html))
                (enlive-text (enlive-query (enlive-parse content)
                                           selector))))))
-    (if (stringp val)
-        (if (string-blank-p val)
-            " "
-          (string-trim val))
-      " ")))
+    (cl-labels ((validate-value (str)
+                  (if (stringp str)
+                      (if (string-blank-p str)
+                          " " (string-trim str))
+                    " ")))
+      (pcase val
+        ((and (pred listp) li) (mapcar (lambda (s) (validate-value s)) li))
+        ((and (pred stringp) st) (validate-value st))))))
 
 (defun org-web-track-insert-log-table ()
   "Insert a table whose row represents value change at the time."
