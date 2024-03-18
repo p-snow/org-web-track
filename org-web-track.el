@@ -109,8 +109,8 @@ or a function that returns the same data structure."
 (defun org-web-track-initialize (url)
   "Initialize the entry at point by setting URL to `org-web-track-url'.
 
-If point is positioned before the first org heading, insert a new one above it initially.
-After the URL has been set, try to retrieve a value if there is
+If point is positioned before the first org heading, insert a new one above it
+initially. After the URL has been set, try to retrieve a value if there is
 an appropriate selector in `org-web-track-selectors-alist'."
   (interactive (list (read-string "URL: "
                                   (org-entry-get (point) org-web-track-url))))
@@ -127,10 +127,10 @@ an appropriate selector in `org-web-track-selectors-alist'."
 
 If called interactively, update the org entry at point.
 
-This command looks up the current values and updates 'org-web-track-value'
-and 'org-web-track-prev-value' if the values have been changed,
-then logs them using org's logging feature.
-The placement of logs respects 'org-log-into-drawer'."
+This command looks up the current values and updates `org-web-track-value'
+and `org-web-track-prev-value' if the values have been changed,
+then logs them using org's logging feature. The placement of logs respects
+`org-log-into-drawer'."
   (interactive (list (point-marker)))
   (when-let* ((track-url (org-entry-get marker org-web-track-url))
               (updates (funcall #'org-web-track-retrieve-values
@@ -173,7 +173,8 @@ Return a list of markers pointing to items where the value has been updated."
 (defun org-web-track-retrieve-values (url &optional async on-success on-fail marker)
   "Retrieve values by accessing the URL.
 
-If ASYNC is non-nil, this process will be executed asynchronously (Synchronous access is default)."
+If ASYNC is non-nil, the procedure will be executed asynchronously.
+However, as of now, asynchronous data retrieval is discouraged."
   (pcase-let ((`(,selectors . (,filter))
                (assoc-default url org-web-track-selectors-alist
                               (lambda (car key)
@@ -298,7 +299,6 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
          (org-web-track--insert-table-from table-rows))))
 
 (defun org-web-track--insert-table-from (rows)
-  ""
   (insert "|TIME")
   (sort rows
         (lambda (elm-a elm-b)
@@ -324,7 +324,8 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
 (defun org-web-track-agenda-update ()
   "Update the tracking item in `org-agenda-mode'.
 
-This command provides a way to invoke `org-web-track-update-entry' after `org-web-track-agenda-columns'."
+This command provides a way to invoke `org-web-track-update-entry'
+after `org-web-track-agenda-columns'."
   (interactive)
   (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
   (org-agenda-check-type t 'agenda 'todo 'tags 'search)
@@ -347,18 +348,21 @@ This command provides a way to invoke `org-web-track-update-entry' after `org-we
 (defun org-web-track-display-values (column-title values)
   "Modify the display of column VALUES for COLUMN-TITLE to be more understandable.
 
-This function is designed to be set for `org-columns-modify-value-for-display-function'."
+This function is designed to be set for
+`org-columns-modify-value-for-display-function'."
   (when (and (org-entry-get (point) org-web-track-url)
              (string-prefix-p (get 'org-web-track-value 'label)
                               column-title))
     (org-web-track-current-changes (point))))
 
 (defun org-web-track-current-changes (&optional pom format separator)
-  "Return a string that represents the current value changes at POM with respect to FORMAT and SEPARATOR.
+  "Return a string showing the current data change on the item at POM
+using FORMAT and SEPARATOR.
 
 If POM is nil, a return value of `point' is used.
 FORMAT defines how to describe the current change for a single target and should
-contain %p and %c as placeholders for the previous value and current value, respectively.
+contain %p and %c as placeholders for the previous value and current value,
+respectively.
 SEPARATOR is used in between changes for multiple targets."
   (let (chnages)
     (cl-do ((curr-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-value) (cdr curr-vals))
@@ -383,10 +387,10 @@ SEPARATOR is used in between changes for multiple targets."
 
 ;;;###autoload
 (defun org-web-track-columns ()
-  "Invoke `org-columns' with `org-web-track-columns-format' to specify COLUMNS-FMT-STRING.
+  "Display a column view specialized for tracking items.
 
-This command provides a columns view to comprehend current information, such as
-changed values and updated time, for tracking items in the current buffer."
+This command invokes `org-columns' with `org-web-track-columns-format'
+to display current changes on tracking items along with the updated time."
   (interactive)
   (let ((org-columns-modify-value-for-display-function
          'org-web-track-display-values))
@@ -394,10 +398,11 @@ changed values and updated time, for tracking items in the current buffer."
 
 ;;;###autoload
 (defun org-web-track-agenda-columns ()
-  "Invoke `org-agenda-columns' with `org-web-track-columns-format' to specify COLUMNS-FMT-STRING.
+  "Display a agenda column view specialized for tracking items.
 
-This command provides an agenda columns view to comprehend current information,
-such as changed values and updated time, for tracking items in `org-web-track-files'."
+This command invokes `org-agenda-columns' with `org-web-track-columns-format'
+to display current changes on tracking items in `org-web-track-files'
+along with the updated time."
   (interactive)
   (let ((org-columns-modify-value-for-display-function
          'org-web-track-display-values)
@@ -409,7 +414,8 @@ such as changed values and updated time, for tracking items in `org-web-track-fi
     (org-tags-view nil (format "%s={.+}" org-web-track-url))))
 
 (defun org-web-track-cmp-updated-time (a b)
-  "Compare A and B with respect to their 'org-web-track-updated' property.
+  "Compare A and B with respect to their `org-web-track-updated' property.
+
 Return -1 if A has an earlier time stamp indicating that the track item was
 updated before B.
 Return +1 if B is earlier, and nil if they are equal.
@@ -427,12 +433,14 @@ This function is intended to be set for `org-agenda-cmp-user-defined'."
             ((if tb (and ta (time-less-p tb ta)) ta) +1)))))
 
 (defun org-web-track-test-selector (url selector &optional filter)
-  "Return the values acquired by applying SELECTOR and optionally FILTER
-to the HTTP response for the URL.
+  "Test SELECTOR and FILTER to determine if they are suitable for use with URL.
 
-This function can be used to test SELECTOR and FILTER for `org-web-track-selectors-alist'.
-SELECTOR must be either a single selector or a list of selectors.
-Selectors and filters are described in `org-web-track-selectors-alist'."
+This function return the values acquired by applying SELECTOR and optionally
+FILTER to the HTTP response for URL.
+Users can be aware whether SELECTOR and FILTER are usable for
+`org-web-track-selectors-alist'.
+SELECTOR can be either a single selector or a list of selectors,
+whereas FILTER must be singular."
   (let ((org-web-track-selectors-alist
          (append `((,(regexp-quote url) ,selector ,filter))
                  org-web-track-selectors-alist)))
