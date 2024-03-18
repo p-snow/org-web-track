@@ -66,7 +66,7 @@
   :group 'org
   :link '(url-link "https://github.com/p-snow/org-web-track"))
 
-(defcustom org-web-track-selector-alist nil
+(defcustom org-web-track-selectors-alist nil
   "An alist of selectors to obtain tracking data.
 
 Each element has the form (URL-MATCH . SELECTOR), where URL-MATCH is used to
@@ -111,15 +111,15 @@ or a function that returns the same data structure."
 
 If point is positioned before the first org heading, insert a new one above it initially.
 After the URL has been set, try to retrieve a value if there is
-an appropriate selector in `org-web-track-selector-alist'."
+an appropriate selector in `org-web-track-selectors-alist'."
   (interactive (list (read-string "URL: "
                                   (org-entry-get (point) org-web-track-url))))
   (when (org-before-first-heading-p)
     (org-insert-heading))
   (org-entry-put (point) org-web-track-url url)
-  (if (assoc-default url org-web-track-selector-alist #'string-match)
+  (if (assoc-default url org-web-track-selectors-alist #'string-match)
       (org-web-track-update-entry)
-    (message "No selector for the URL. Please set up `org-web-track-selector-alist'.")))
+    (message "No selector for the URL. Please set up `org-web-track-selectors-alist'.")))
 
 ;;;###autoload
 (defun org-web-track-update-entry (&optional marker)
@@ -175,7 +175,7 @@ Return a list of markers pointing to items where the value has been updated."
 
 If ASYNC is non-nil, this process will be executed asynchronously (Synchronous access is default)."
   (pcase-let ((`(,selectors . (,filter))
-               (assoc-default url org-web-track-selector-alist
+               (assoc-default url org-web-track-selectors-alist
                               (lambda (car key)
                                 (cond
                                  ((functionp car) (funcall car key))
@@ -430,12 +430,12 @@ This function is intended to be set for `org-agenda-cmp-user-defined'."
   "Return the values acquired by applying SELECTOR and optionally FILTER
 to the HTTP response for the URL.
 
-This function can be used to test SELECTOR and FILTER for `org-web-track-selector-alist'.
+This function can be used to test SELECTOR and FILTER for `org-web-track-selectors-alist'.
 SELECTOR must be either a single selector or a list of selectors.
-Selectors and filters are described in `org-web-track-selector-alist'."
-  (let ((org-web-track-selector-alist
+Selectors and filters are described in `org-web-track-selectors-alist'."
+  (let ((org-web-track-selectors-alist
          (append `((,(regexp-quote url) ,selector ,filter))
-                 org-web-track-selector-alist)))
+                 org-web-track-selectors-alist)))
     (org-web-track-retrieve-values url)))
 
 (provide 'org-web-track)
