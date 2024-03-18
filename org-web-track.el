@@ -26,8 +26,8 @@
 
 ;;; Commentary:
 
-;; org-web-tools offers a set of elisp functions and commands which are useful
-;; for retrieving and managing data from the web in Org mode.
+;; org-web-track offers a set of Elisp functions and commands that are useful for
+;; keeping track of volatile data on the web in Org Mode.
 
 ;;; Code:
 
@@ -79,10 +79,10 @@ find which tracking entry this SELECTOR is responsible for and SELECTOR itself."
   :group 'org-web-track)
 
 (defcustom org-web-track-files nil
-  "A collection of files that contain tracking entries.
+  "The files to be used in `org-web-track-agenda-columns'.
 
-This must be either a list of strings, which is a path for the above-referenced file,
-or a function that returns a list of files."
+Its value must be either a list of strings representing file paths
+or a function that returns the same data structure."
   :type '(choice
           (repeat :tag "List of files" file)
           (function))
