@@ -105,6 +105,7 @@ or a function that returns the same data structure."
     ((and (pred functionp) fun) (funcall fun))
     ((and (pred listp) li) li)))
 
+;;;###autoload
 (defun org-web-track-initialize (url)
   "Initialize the entry at point by setting URL to `org-web-track-url'.
 
@@ -120,6 +121,7 @@ an appropriate selector in `org-web-track-selector-alist'."
       (org-web-track-update-entry)
     (message "No selector for the URL. Please set up `org-web-track-selector-alist'.")))
 
+;;;###autoload
 (defun org-web-track-update-entry (&optional marker)
   "Update the tracking item at MARKER.
 
@@ -157,6 +159,7 @@ The placement of logs respects 'org-log-into-drawer'."
         (org-entry-put marker org-web-track-updated current-time)
         marker))))
 
+;;;###autoload
 (defun org-web-track-update-files ()
   "Update all track items (org entries) in `org-web-track-files'.
 
@@ -271,6 +274,7 @@ If ASYNC is non-nil, this process will be executed asynchronously (Synchronous a
         ((and (pred listp) li) (mapcar (lambda (s) (validate-value s)) li))
         ((and (pred stringp) st) (validate-value st))))))
 
+;;;###autoload
 (defun org-web-track-insert-log-table ()
   "Insert a table whose row represents value change at the time."
   (interactive)
@@ -377,6 +381,7 @@ SEPARATOR is used in between changes for multiple targets."
            ,(get 'org-web-track-updated 'label)))
   "Columns format for `org-web-track-columns' and `org-web-track-agenda-columns'.")
 
+;;;###autoload
 (defun org-web-track-columns ()
   "Invoke `org-columns' with `org-web-track-columns-format' to specify COLUMNS-FMT-STRING.
 
@@ -387,6 +392,7 @@ changed values and updated time, for tracking items in the current buffer."
          'org-web-track-display-values))
     (org-columns nil org-web-track-columns-format)))
 
+;;;###autoload
 (defun org-web-track-agenda-columns ()
   "Invoke `org-agenda-columns' with `org-web-track-columns-format' to specify COLUMNS-FMT-STRING.
 
