@@ -340,7 +340,7 @@ This command provides a way to invoke `org-web-track-update-entry' after `org-we
      (org-with-remote-undo buffer
        (with-current-buffer buffer
          (widen)
-         (org-show-all)
+         (org-fold-show-all)
          (goto-char pos)
          (funcall-interactively #'org-web-track-update-entry))))))
 
