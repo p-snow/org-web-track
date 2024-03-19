@@ -157,6 +157,8 @@ then logs them using org's logging feature. The placement of logs respects
                              nil 'state current-time)
           (run-hooks 'post-command-hook))
         (org-entry-put marker org-web-track-updated current-time)
+        (when (called-interactively-p 'any)
+          (message "Updated: %s" (org-entry-get marker org-web-track-value)))
         marker))))
 
 ;;;###autoload
