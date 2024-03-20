@@ -106,7 +106,7 @@ or a function that returns the same data structure."
     ((and (pred listp) li) li)))
 
 ;;;###autoload
-(defun org-web-track-initialize (url)
+(defun org-web-track-setup-entry (url)
   "Initialize the entry at point by setting URL to `org-web-track-url'.
 
 If point is positioned before the first org heading, insert a new one above it
