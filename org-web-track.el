@@ -67,10 +67,47 @@
   :link '(url-link "https://github.com/p-snow/org-web-track"))
 
 (defcustom org-web-track-selectors-alist nil
-  "An alist of selectors to obtain tracking data.
+  "An alist of selectors used to obtain desired data.
 
-Each element has the form (URL-MATCH . SELECTOR), where URL-MATCH is used to
-find which tracking entry this SELECTOR is responsible for and SELECTOR itself."
+Each element in this alist must be a list that comprises URL-MATCH, SELECTORS
+and FILTER in that specific order.
+
+URL-MATCH:
+URL-MATCH for the car indicates for which URL this selector is responsible.
+URL-MATCH can be either a string or a function. The string is used as a regexp
+to determine URLs that match against it. The function takes one argument,
+a URL candidate, and must return non-nil if this selector can deal with the URL.
+
+SELECTORS:
+SELECTORS for the second is either a single selector or a list of selectors,
+which are responsible for determining the target data.
+
+If the selector is a vector, it is supposed to represent a CSS selector that is
+used to determine the target data. org-web-track delegates the determination
+procedure with CSS selector to the enlive package.
+Check the following page for information on how to specify a CSS selector.
+
+https://github.com/zweifisch/enlive/blob/master/README.org
+
+If the selector is a function, it is expected to take a data object derived from
+the HTTP response and return the target data as a string or a list of strings.
+Note that each string represents one tracking unit.
+The data object varies depending on the content type of the response.
+If the content type is HTML, it is a parse tree obtained from
+`libxml-parse-html-region'.
+If the content type is XML, it is a parse tree obtained from
+`libxml-parse-xml-region'.
+If the content type is JSON, it is a Lisp object obtained from
+`json-parse-string'.
+
+If the selector is a string, it is expected to be a shell command that takes
+the response as stdin and returns the target data.
+Users can use parsing utility commands like pup or htmlq.
+
+FILTER:
+The optional third FILTER takes the multiple arguments that the selector returns
+for the target data and returns filtered results as either a string or a list of
+strings."
   :type '(alist :key-type (string :tag "Regexp")
                 :value-type
                 (choice (vector :tag "A CSS selector")
