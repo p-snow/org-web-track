@@ -315,7 +315,7 @@ However, as of now, asynchronous data retrieval is discouraged."
         ((and (pred stringp) st) (validate-value st))))))
 
 ;;;###autoload
-(defun org-web-track-insert-log-table ()
+(defun org-web-track-report ()
   "Insert a table whose row represents value change at the time."
   (interactive)
   (let ((table-rows))
