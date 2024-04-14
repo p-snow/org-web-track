@@ -412,7 +412,8 @@ SEPARATOR is used in between changes for multiple targets."
                            (?c . ,(or (car curr-vals) "N/A"))))
             chnages))))
 
-(defvar org-web-track-columns-format
+(defun org-web-track-columns-format ()
+  "Return columns format for `org-columns' to display property values in the context of org-web-track."
   (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
          `(,@(mapcar (lambda (w) (if (= 0 w) "" (format "%d" w)))
                      `(,org-web-track-item-column-width
@@ -421,8 +422,7 @@ SEPARATOR is used in between changes for multiple targets."
            ,(get 'org-web-track-value 'label)
            ,(get 'org-web-track-prev-value 'label)
            ,org-web-track-updated
-           ,(get 'org-web-track-updated 'label)))
-  "Columns format for `org-web-track-columns' and `org-web-track-agenda-columns'.")
+           ,(get 'org-web-track-updated 'label))))
 
 ;;;###autoload
 (defun org-web-track-columns ()
@@ -433,7 +433,7 @@ to display current changes on tracking items along with the updated time."
   (interactive)
   (let ((org-columns-modify-value-for-display-function
          'org-web-track-display-values))
-    (org-columns nil org-web-track-columns-format)))
+    (org-columns nil (org-web-track-columns-format))))
 
 ;;;###autoload
 (defun org-web-track-agenda-columns ()
@@ -445,7 +445,7 @@ along with the updated time."
   (interactive)
   (let ((org-columns-modify-value-for-display-function
          'org-web-track-display-values)
-        (org-overriding-columns-format org-web-track-columns-format)
+        (org-overriding-columns-format (org-web-track-columns-format))
         (org-agenda-files (org-web-track-files))
         (org-agenda-sorting-strategy '((tags user-defined-up)))
         (org-agenda-cmp-user-defined 'org-web-track-cmp-updated-time)
