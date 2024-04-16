@@ -39,12 +39,22 @@ org-web-track offers a set of Elisp functions and commands that are useful for k
 - [[https://github.com/tkf/emacs-request][request.el]] v0.3.2
 - [[https://github.com/zweifisch/enlive][enlive]] v0.0.1
 
-** Code
+** How to install
 :PROPERTIES:
 :CREATED:  [2023-06-25 Sun 20:55]
 :END:
 
-=org-web-track= has not yet been registered in any package repositories. Please consider installing it manually.
+=org-web-track= has not yet been registered in any official package archives. Please consider installing it manually or from my own ELPA using the following steps.
+
+1. Add p-snow's archive to your package-archives list
+   #+begin_src emacs-lisp
+   (require 'package)
+   (add-to-list 'package-archives '("p-snow" . "https://p-snow.org/packages/"))
+   #+end_src
+2. Refresh package list
+   Use the command M-x package-refresh-contents after updating the archives to download a listing of packages in the archives.
+3. Install org-web-track
+   Install org-web-track as you would any other package: via use-package statements, M-x list-packages, or any other way.
 
 * Terminology
 :PROPERTIES:
