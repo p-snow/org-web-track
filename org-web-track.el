@@ -1,9 +1,9 @@
 ;;; org-web-track.el --- Web data tracking framework in org mode -*- lexical-binding: t -*-
 
 ;; Author: p-snow <public@p-snow.org>
-;; Maintainer: p-snow <<public@p-snow.org>>
+;; Maintainer: p-snow <public@p-snow.org>
 ;; Version: 0.0.2
-;; Package-Requires: (org org-agenda request enlive)
+;; Package-Requires: ((emacs "28.1") (org "9.5") (request "0.3.0") (enlive "0.0.1"))
 ;; Homepage: https://github.com/p-snow/org-web-track
 ;; Keywords: org, agenda, web, hypermedia
 
