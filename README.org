@@ -1,14 +1,14 @@
-#+begin_src text :exports none
-About:
+#+export_file_name: org-web-track.texi
+#+texinfo_filename: org-web-track.info
+#+texinfo_dir_category: Emacs
+#+texinfo_dir_title: Org Web Track: (org-web-track)
+#+texinfo_dir_desc: An Elisp package to help users keep track of data snippets from web pages in Org Mode
+#+texinfo_header: @set MAINTAINERSITE @uref{https://github.com/p-snow/org-web-track,website}
+#+texinfo_header: @set MAINTAINER p-snow
+#+texinfo_header: @set MAINTAINEREMAIL @email{public@p-snow.org}
+#+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:public@p-snow.org,contact the maintainer}
 
-An Elisp package to help users keep track of data snippets from web pages in Org Mode
-#+end_src
-
-#+begin_src text :exports none
-Commentary:
-
-org-web-track offers a set of Elisp functions and commands that are useful for keeping track of data snippets web pages in Org Mode.
-#+end_src
+#+texinfo: @insertcopying
 
 * Org Web Track
 

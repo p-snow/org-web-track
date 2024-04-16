@@ -1,0 +1,171 @@
+This is org-web-track.info, produced by .texi2any-real version 7.1 from
+org-web-track.texi.
+
+INFO-DIR-SECTION Emacs
+START-INFO-DIR-ENTRY
+* Org Web Track: (org-web-track). An Elisp package to help users keep track of data snippets from web pages in Org Mode.
+END-INFO-DIR-ENTRY
+
+
+File: org-web-track.info,  Node: Top,  Next: Org Web Track,  Up: (dir)
+
+* Menu:
+
+* Org Web Track::
+* Installation::
+* Terminology::
+* Usage::
+
+-- The Detailed Node Listing --
+
+Installation
+
+* Requirements::
+* How to install::
+
+Usage
+
+* Basic data tracking workflow::
+
+
+
+File: org-web-track.info,  Node: Org Web Track,  Next: Installation,  Prev: Top,  Up: Top
+
+Org Web Track
+*************
+
+‘org-web-track’ is an Elisp package for org-mode that provides commands
+and functions to assist users in keeping track of data snippets from web
+pages that may change over time, such as scores, prices, or states.
+
+  1. tracking support org-web-track retrieves data based on a
+     user-defined URL and selector, which indicate where to access and
+     from which location to gather the data, respectively.  Once they
+     are set appropriately, org-web-track looks up on demand and updates
+     the value.
+
+  2. comprehensible data display In the context of org-web-track, an org
+     entry with a URL is considered a tracking item.  org-web-track
+     offers a specialized column view for reviewing a group of tracking
+     items, including their current values and updated time.
+
+  3. data log utilization org-web-track logs all updates and provides a
+     command to create an org table that shows data transitions in
+     ascending order of time.  Users can utilize the table in various
+     ways, including for data analysis and visualization.
+
+   ‘org-web-track’ is currently under development.  Use it at your own
+risk.
+
+
+File: org-web-track.info,  Node: Installation,  Next: Terminology,  Prev: Org Web Track,  Up: Top
+
+Installation
+************
+
+* Menu:
+
+* Requirements::
+* How to install::
+
+
+File: org-web-track.info,  Node: Requirements,  Next: How to install,  Up: Installation
+
+Requirements
+============
+
+   • Emacs 28.1 or higher
+   • Org-mode 9.5 or higher
+   • request.el (https://github.com/tkf/emacs-request) v0.3.2
+   • enlive (https://github.com/zweifisch/enlive) v0.0.1
+
+
+File: org-web-track.info,  Node: How to install,  Prev: Requirements,  Up: Installation
+
+How to install
+==============
+
+‘org-web-track’ has not yet been registered in any official package
+archives.  Please consider installing it manually or from my own ELPA
+using the following steps.
+
+  1. Add p-snow's archive to your package-archives list
+          (require 'package)
+          (add-to-list 'package-archives '("p-snow" . "https://p-snow.org/packages/"))
+  2. Refresh package list Use the command M-x package-refresh-contents
+     after updating the archives to download a listing of packages in
+     the archives.
+  3. Install org-web-track Install org-web-track as you would any other
+     package: via use-package statements, M-x list-packages, or any
+     other way.
+
+
+File: org-web-track.info,  Node: Terminology,  Next: Usage,  Prev: Installation,  Up: Top
+
+Terminology
+***********
+
+   • Selector
+
+   • Tracking Files
+
+
+File: org-web-track.info,  Node: Usage,  Prev: Terminology,  Up: Top
+
+Usage
+*****
+
+* Menu:
+
+* Basic data tracking workflow::
+
+
+File: org-web-track.info,  Node: Basic data tracking workflow,  Up: Usage
+
+Basic data tracking workflow
+============================
+
+  1. Setup selectors
+
+     The variable ‘org-web-track-selector-alist’ is used to define a
+     list of selection conditions in the (URL-MATCH .  SELECTOR) format.
+     If a tracking item has a URL that matches URL-MATCH, the SELECTOR
+     is applied to the response for that URL to capture data.
+
+     SELECTOR can take on one of three forms: a vector, a function, or a
+     string.  If a vector is provided, it should represent a CSS
+     selector.  If a function is provided, it will be called with a
+     temporary buffer containing the HTML document.  If a string is
+     provided, it should represent a shell command that will be invoked
+     with the HTML string piped in.
+  2. Creating tracking items
+
+     To track an item in ‘org-web-track’, the user needs to create an
+     org entry first and then use ‘org-web-track-setup’ to set a
+     tracking URL and carry out initial data tracking.
+  3. Updating data
+
+     Users can update a specific org entry by invoking
+     ‘org-web-track-update’.  If any updates are detected,
+     ‘org-web-track’ logs a new record with the updated data and a
+     timestamp.  Alternatively, users can update all tracking items in
+     ‘org-web-track-files’ by calling ‘org-web-track-update-all’.
+
+
+
+Tag Table:
+Node: Top278
+Node: Org Web Track549
+Node: Installation1807
+Node: Requirements1981
+Node: How to install2281
+Node: Terminology3062
+Node: Usage3220
+Node: Basic data tracking workflow3348
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

@@ -1,0 +1,11 @@
+#+begin_src text :exports none
+About:
+
+An Elisp package to help users keep track of data snippets from web pages in Org Mode
+#+end_src
+
+#+begin_src text :exports none
+Commentary:
+
+org-web-track offers a set of Elisp functions and commands that are useful for keeping track of data snippets web pages in Org Mode.
+#+end_src
