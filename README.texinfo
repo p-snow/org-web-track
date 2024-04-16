@@ -1,0 +1,148 @@
+@node Top
+@top Top
+
+@menu
+* Org Web Track::
+* Installation::
+* Terminology::
+* Usage::
+@end menu
+
+@node Org Web Track
+@chapter Org Web Track
+@anchor{#org-web-track}
+@code{org-web-track} is an Elisp package for org-mode that provides
+commands and functions to assist users in keeping track of data snippets
+from web pages that may change over time, such as scores, prices, or
+states.
+
+@enumerate 
+@item
+tracking support org-web-track retrieves data based on a user-defined
+URL and selector, which indicate where to access and from which location
+to gather the data, respectively. Once they are set appropriately,
+org-web-track looks up on demand and updates the value.
+
+@item
+comprehensible data display In the context of org-web-track, an org
+entry with a URL is considered a tracking item. org-web-track offers a
+specialized column view for reviewing a group of tracking items,
+including their current values and updated time.
+
+@item
+data log utilization org-web-track logs all updates and provides a
+command to create an org table that shows data transitions in ascending
+order of time. Users can utilize the table in various ways, including
+for data analysis and visualization.
+
+@end enumerate
+
+@code{org-web-track} is currently under development. Use it at your own
+risk.
+
+@node Installation
+@chapter Installation
+@anchor{#installation}
+
+@menu
+* Requirements::
+* How to install::
+@end menu
+
+@node Requirements
+@section Requirements
+@anchor{#requirements}
+@itemize
+@item
+Emacs 28.1 or higher
+@item
+Org-mode 9.5 or higher
+@item
+@uref{https://github.com/tkf/emacs-request,request.el} v0.3.2
+@item
+@uref{https://github.com/zweifisch/enlive,enlive} v0.0.1
+@end itemize
+
+@node How to install
+@section How to install
+@anchor{#how-to-install}
+@code{org-web-track} has not yet been registered in any official package
+archives. Please consider installing it manually or from my own ELPA
+using the following steps.
+
+@enumerate 
+@item
+Add p-snow's archive to your package-archives list
+
+@verbatim
+(require 'package)
+(add-to-list 'package-archives '("p-snow" . "https://p-snow.org/packages/"))
+@end verbatim
+
+@item
+Refresh package list Use the command M-x package-refresh-contents after
+updating the archives to download a listing of packages in the archives.
+
+@item
+Install org-web-track Install org-web-track as you would any other
+package: via use-package statements, M-x list-packages, or any other
+way.
+
+@end enumerate
+
+@node Terminology
+@chapter Terminology
+@anchor{#terminology}
+@itemize
+@item
+Selector
+
+@item
+Tracking Files
+
+@end itemize
+
+@node Usage
+@chapter Usage
+@anchor{#usage}
+
+@menu
+* Basic data tracking workflow::
+@end menu
+
+@node Basic data tracking workflow
+@section Basic data tracking workflow
+@anchor{#basic-data-tracking-workflow}
+@enumerate 
+@item
+Setup selectors
+
+The variable @code{org-web-track-selector-alist} is used to define a
+list of selection conditions in the (URL-MATCH . SELECTOR) format. If a
+tracking item has a URL that matches URL-MATCH, the SELECTOR is applied
+to the response for that URL to capture data.
+
+SELECTOR can take on one of three forms: a vector, a function, or a
+string. If a vector is provided, it should represent a CSS selector. If
+a function is provided, it will be called with a temporary buffer
+containing the HTML document. If a string is provided, it should
+represent a shell command that will be invoked with the HTML string
+piped in.
+
+@item
+Creating tracking items
+
+To track an item in @code{org-web-track}, the user needs to create an
+org entry first and then use @code{org-web-track-setup} to set a
+tracking URL and carry out initial data tracking.
+
+@item
+Updating data
+
+Users can update a specific org entry by invoking
+@code{org-web-track-update}. If any updates are detected,
+@code{org-web-track} logs a new record with the updated data and a
+timestamp. Alternatively, users can update all tracking items in
+@code{org-web-track-files} by calling @code{org-web-track-update-all}.
+
+@end enumerate
