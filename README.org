@@ -34,8 +34,7 @@
 :CREATED:  [2023-06-16 Fri 10:20]
 :END:
 
-- Emacs 28.1 or higher
-- Org-mode 9.5 or higher
+- Emacs 29.1 or higher
 - [[https://github.com/tkf/emacs-request][request.el]] v0.3.2
 - [[https://github.com/zweifisch/enlive][enlive]] v0.0.1
 
