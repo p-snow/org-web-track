@@ -212,8 +212,14 @@ Return a list of markers pointing to items where the value has been updated."
 (defun org-web-track-retrieve-values (url &optional async on-success on-fail marker)
   "Retrieve values by accessing the URL.
 
-If ASYNC is non-nil, the procedure will be executed asynchronously.
-However, as of now, asynchronous data retrieval is discouraged."
+If ASYNC is non-nil, the networking procedure will be executed asynchronously.
+However, as of now, asynchronous data retrieval is discouraged.
+
+ON-SUCCESS must be a function that takes two arguments, MARKER and retrieved
+values, and will be called after the completion of retrieval.
+
+ON-FAIL must be a function that takes MARKER and will be called after the
+failure of retrieval."
   (pcase-let ((`(,selectors . (,filter))
                (assoc-default url org-web-track-selectors-alist
                               (lambda (car key)
@@ -268,7 +274,7 @@ However, as of now, asynchronous data retrieval is discouraged."
                   (request-response-error-thrown response))))
       :complete
       (cl-function
-       (lambda (&key data &allow-other-keys)
+       (lambda (&allow-other-keys)
          (if (seq-some 'stringp values)
              (and (functionp on-success)
                   (funcall on-success marker values))
@@ -338,6 +344,7 @@ However, as of now, asynchronous data retrieval is discouraged."
          (org-web-track--insert-table-from table-rows))))
 
 (defun org-web-track--insert-table-from (rows)
+  "Build a table row for `org-web-track-report' using ROWS."
   (insert "|TIME")
   (sort rows
         (lambda (elm-a elm-b)
@@ -395,8 +402,7 @@ This function is designed to be set for
     (org-web-track-current-changes (point))))
 
 (defun org-web-track-current-changes (&optional pom format separator)
-  "Return a string showing the current data change on the item at POM
-using FORMAT and SEPARATOR.
+  "Return the current data change on the item at POM using FORMAT and SEPARATOR.
 
 If POM is nil, a return value of `point' is used.
 FORMAT defines how to describe the current change for a single target and should
@@ -413,7 +419,7 @@ SEPARATOR is used in between changes for multiple targets."
             chnages))))
 
 (defun org-web-track-columns-format ()
-  "Return columns format for `org-columns' to display property values in the context of org-web-track."
+  "Return columns format for `org-columns' for org-web-track."
   (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
          `(,@(mapcar (lambda (w) (if (= 0 w) "" (format "%d" w)))
                      `(,org-web-track-item-column-width
