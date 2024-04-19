@@ -74,8 +74,8 @@ and FILTER in that specific order.
 
 URL-MATCH:
 URL-MATCH for the car indicates for which URL this selector is responsible.
-URL-MATCH can be either a string or a function. The string is used as a regexp
-to determine URLs that match against it. The function takes one argument,
+URL-MATCH can be either a string or a function.  The string is used as a regexp
+to determine URLs that match against it.  The function takes one argument,
 a URL candidate, and must return non-nil if this selector can deal with the URL.
 
 SELECTORS:
@@ -83,11 +83,10 @@ SELECTORS for the second is either a single selector or a list of selectors,
 which are responsible for determining the target data.
 
 If the selector is a vector, it is supposed to represent a CSS selector that is
-used to determine the target data. org-web-track delegates the determination
+used to determine the target data.  org-web-track delegates the determination
 procedure with CSS selector to the enlive package.
-Check the following page for information on how to specify a CSS selector.
-
-https://github.com/zweifisch/enlive/blob/master/README.org
+See <https://github.com/zweifisch/enlive/blob/master/README.org> for information
+on how to write a CSS selector.
 
 If the selector is a function, it is expected to take a data object derived from
 the HTTP response and return the target data as a string or a list of strings.
@@ -147,7 +146,7 @@ or a function that returns the same data structure."
   "Initialize the entry at point by setting URL to `org-web-track-url'.
 
 If point is positioned before the first org heading, insert a new one above it
-initially. After the URL has been set, try to retrieve a value if there is
+initially.  After the URL has been set, try to retrieve a value if there is
 an appropriate selector in `org-web-track-selectors-alist'."
   (interactive (list (read-string "URL: "
                                   (org-entry-get (point) org-web-track-url))))
@@ -166,7 +165,7 @@ If called interactively, update the org entry at point.
 
 This command looks up the current values and updates `org-web-track-value'
 and `org-web-track-prev-value' if the values have been changed,
-then logs them using org's logging feature. The placement of logs respects
+then logs them using org's logging feature.  The placement of logs respects
 `org-log-into-drawer'."
   (interactive (list (point-marker)))
   (when-let* ((track-url (org-entry-get marker org-web-track-url))
