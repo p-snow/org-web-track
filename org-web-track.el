@@ -273,7 +273,7 @@ failure of retrieval."
                   (request-response-error-thrown response))))
       :complete
       (cl-function
-       (lambda (&allow-other-keys)
+       (lambda (&key data &allow-other-keys)
          (if (seq-some 'stringp values)
              (and (functionp on-success)
                   (funcall on-success marker values))
