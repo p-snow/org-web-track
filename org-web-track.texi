@@ -25,74 +25,91 @@
 @top 
 
 @insertcopying
+
+@samp{org-web-track} is an Emacs package that provides commands to assist users in keeping track of data snippets from web pages or web APIs that may change over time, such as scores, prices, or states in @samp{org-mode}.
 @end ifnottex
 
 @menu
-* Org Web Track::
+* Overview::
 * Installation::
-* Terminology::
-* Usage::
+* Basic Usage::
+* Extended Examples::
+* License::
 
 @detailmenu
 --- The Detailed Node Listing ---
 
-Installation
+Overview
 
-* Requirements::
-* How to install::
+* Retrieving data::
 
-Usage
+Basic Usage
 
-* Basic data tracking workflow::
+* Defining Tracking Items::
+* Updating Values::
+* Displaying Column View::
+* Creating Report::
+
+Extended Examples
+
+* Automatic Bulk Updating and Email Notifications::
 
 @end detailmenu
 @end menu
 
-@node Org Web Track
-@unnumbered Org Web Track
+@node Overview
+@unnumbered Overview
 
-@samp{org-web-track} is an Elisp package for org-mode that provides commands and functions to assist users in keeping track of data snippets from web pages that may change over time, such as scores, prices, or states.
+With @samp{org-web-track}:
 
-@enumerate
+@itemize
 @item
-tracking support
-org-web-track retrieves data based on a user-defined URL and selector, which indicate where to access and from which location to gather the data, respectively. Once they are set appropriately, org-web-track looks up on demand and updates the value.
-
+An @samp{org-mode} entry represents a tracking item, which is defined by a URL and a selector. These indicate where to access and from which location to obtain the desired data.
 @item
-comprehensible data display
-In the context of org-web-track, an org entry with a URL is considered a tracking item. org-web-track offers a specialized column view for reviewing a group of tracking items, including their current values and updated time.
-
+Once the URL and the selector are provided, users can begin retrieving data using an interactive command or an Elisp function as needed, and the data is stored in a property drawer.
 @item
-data log utilization
-org-web-track logs all updates and provides a command to create an org table that shows data transitions in ascending order of time. Users can utilize the table in various ways, including for data analysis and visualization.
-@end enumerate
+Updated values for all tracking items can be displayed in an @samp{org-mode} column view alongside their previous values and the time of the update.
+@item
+All past values are stored as log data in the entry and can be extracted into an @samp{org-table}. Users can use the table to create visual graphs or perform data analysis.
+@end itemize
 
-@samp{org-web-track} is currently under development. Use it at your own risk.
+@uref{org-web-track-columns_screenshot01.png, Column View}
+
+@menu
+* Retrieving data::
+@end menu
+
+@node Retrieving data
+@unnumberedsec Retrieving data
+
+When users specify which snippet of data to track on web pages or web APIs, the following methods are available:
+
+@itemize
+@item
+CSS selectors, which are applied against the source code of the web page
+@item
+Elisp functions, which receive a DOM object or a JSON object from a web page or a web API and are expected to return a desired value from the argument
+@item
+Shell commands, which take a page source or an API response as STDIN and are expected to print a desired value to STDOUT
+@end itemize
 
 @node Installation
 @unnumbered Installation
 
-@menu
-* Requirements::
-* How to install::
-@end menu
-
-@node Requirements
-@unnumberedsec Requirements
+@samp{org-web-track} is currently under development. Use it at your own risk.
 
 @itemize
 @item
-Emacs 28.1 or higher
+Requirements
+@itemize
 @item
-Org-mode 9.5 or higher
+Emacs 29.1 or higher
 @item
 @uref{https://github.com/tkf/emacs-request, request.el} v0.3.2
 @item
 @uref{https://github.com/zweifisch/enlive, enlive} v0.0.1
 @end itemize
-
-@node How to install
-@unnumberedsec How to install
+@end itemize
 
 @samp{org-web-track} has not yet been registered in any official package archives. Please consider installing it manually or from my own ELPA using the following steps.
 
@@ -111,42 +128,95 @@ Install org-web-track
 Install org-web-track as you would any other package: via use-package statements, M-x list-packages, or any other way.
 @end enumerate
 
-@node Terminology
-@unnumbered Terminology
+@node Basic Usage
+@unnumbered Basic Usage
 
-@itemize
-@item
-Selector
-
-@item
-Tracking Files
-@end itemize
-
-@node Usage
-@unnumbered Usage
+In this section, the basic @samp{org-web-track} mechanism and fundamental command usage are described.
 
 @menu
-* Basic data tracking workflow::
+* Defining Tracking Items::
+* Updating Values::
+* Displaying Column View::
+* Creating Report::
 @end menu
 
-@node Basic data tracking workflow
-@unnumberedsec Basic data tracking workflow
+@node Defining Tracking Items
+@unnumberedsec Defining Tracking Items
 
-@enumerate
-@item
-Setup selectors
+Before setting up each tracking item, users need to define @samp{org-web-track-selectors-alist}, which is a list of lists consisting of URL-MATCH and SELECTOR@. Each element is responsible for selecting data for the tracking item that has a URL matching against URL-MATCH and applying SELECTOR to the response. An example of @samp{org-web-track-selectors-alist} is as follows:
 
-The variable @samp{org-web-track-selector-alist} is used to define a list of selection conditions in the (URL-MATCH . SELECTOR) format. If a tracking item has a URL that matches URL-MATCH, the SELECTOR is applied to the response for that URL to capture data.
+(setq org-web-track-selectors-alist '(("example\\.com/product" [.final-price])))
 
-SELECTOR can take on one of three forms: a vector, a function, or a string. If a vector is provided, it should represent a CSS selector. If a function is provided, it will be called with a temporary buffer containing the HTML document. If a string is provided, it should represent a shell command that will be invoked with the HTML string piped in.
-@item
-Creating tracking items
+The above code means that the target value for all product items, which have a URL containing "example.com/product", can be obtained from the HTML response by searching in the tag with a class attribute of "final-price". Refer to the description of @samp{org-web-track-selectors-alist} for detailed guidance on how to define the SELECTOR@.
 
-To track an item in @samp{org-web-track}, the user needs to create an org entry first and then use @samp{org-web-track-setup} to set a tracking URL and carry out initial data tracking.
-@item
-Updating data
+Users can also use @samp{org-web-track-test-selector} function to create and/or verify a selector for the specific URL before configuring @samp{org-web-track-selectors-alist}.
 
-Users can update a specific org entry by invoking @samp{org-web-track-update}. If any updates are detected, @samp{org-web-track} logs a new record with the updated data and a timestamp. Alternatively, users can update all tracking items in @samp{org-web-track-files} by calling @samp{org-web-track-update-all}.
-@end enumerate
+After appropriately defining @samp{org-web-track-selectors-alist}, users can set up each specific tracking item by calling @samp{org-web-track-setup-entry} on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
+
+@node Updating Values
+@unnumberedsec Updating Values
+
+The simplest way to update the value is to call @samp{org-web-track-update-entry} on the desired org entry. If the retrieved value is updated compared to the last value, the updated value will be stored as the TRACK_CURRENT_VALUE org property; otherwise, the entry will remain unchanged.
+
+Alternatively, bulk updating is supported. To enable bulk updating, users must first define @samp{org-web-track-files}. This variable should be a list of files in which all tracking items, identified by having the TRACK_URL property, are selected for bulk updating. To perform bulk updating, call @samp{org-web-track-update-files}.
+
+@node Displaying Column View
+@unnumberedsec Displaying Column View
+
+Column view in org-mode is a feature that displays properties in a table, providing a clear and comprehensive perspective. @samp{org-web-track} offers a specialized column view where updated values are juxtaposed with their previous values for tracking items. To display the column view, call @samp{org-web-track-columns} in org buffer.
+
+If tracking items are scattered across many files, @samp{org-web-track-agenda-columns} is useful as all tracking items in the aforementioned @samp{org-web-track-files} are gathered in the agenda column view. Users can also update any item in the agenda column view by calling @samp{org-web-track-agenda-update}.
+
+@node Creating Report
+@unnumberedsec Creating Report
+
+All updated values from the past are logged in the entry using the existing org log note feature. Log notes have a fixed format and are placed in a drawer only if @samp{org-log-into-drawer} is non-nil.
+
+@samp{org-web-track-report} creates a table where all log note values are listed in ascending order of time, showing the transition of values over time. Users can utilize the table to create a graph using Gnuplot or analyze trends with Pandas, for example.
+
+@node Extended Examples
+@unnumbered Extended Examples
+
+In this section, examples of how to utilize @samp{org-web-track} extensively are showcased.
+
+@menu
+* Automatic Bulk Updating and Email Notifications::
+@end menu
+
+@node Automatic Bulk Updating and Email Notifications
+@unnumberedsec Automatic Bulk Updating and Email Notifications
+
+While automatic updating may be ideal in certain situations, @samp{org-web-track} refrains from providing this feature directly to prevent potential data violations. However, users can enable automatic updating by calling @samp{org-web-track-update-entry} or @samp{org-web-track-update-files} from Elisp code. Below is an example implementation of automatic updates with email notifications scheduled for midnight.
+
+@lisp
+(defun exp/email-updated ()
+  "Check for updates on all tracking items in `org-web-track-files'
+and email me the updated list of items formatted as requested."
+  (let* ((message-kill-buffer-on-exit t)
+         (mail-msg (mapconcat
+                    (lambda (chg)
+                      (org-with-point-at chg
+                        (let ((org-trust-scanner-tags t))
+                          (format "%s\n\t%s\n"
+                                  (substring-no-properties
+                                   (org-get-heading t t t t))
+                                  (org-web-track-current-changes nil "%p => %c" " | ")))))
+                    (org-web-track-update-files))))
+    (unless (string-blank-p mail-msg)
+      ;; SMTP settings are required in advance (see smtpmail-xxx vaiables)
+      (message-mail user-mail-address "Web Tracking Notification")
+      (message-goto-body)
+      (insert mail-msg)
+      (message-send-and-exit))))
+
+(require 'midnight)
+(add-hook 'midnight-hook #'exp/email-updated)
+(midnight-mode 1)
+@end lisp
+
+@node License
+@unnumbered License
+
+GPLv3
 
 @bye

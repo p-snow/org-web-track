@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       6467515a-587c-4c98-95fc-b2762f64608c
+:END:
 #+export_file_name: org-web-track.texi
 #+texinfo_filename: org-web-track.info
 #+texinfo_dir_category: Emacs
@@ -10,38 +13,45 @@
 
 #+texinfo: @insertcopying
 
-* Org Web Track
+=org-web-track= is an Emacs package that provides commands to assist users in keeping track of data snippets from web pages or web APIs that may change over time, such as scores, prices, or states in =org-mode=.
 
-=org-web-track= is an Elisp package for org-mode that provides commands and functions to assist users in keeping track of data snippets from web pages that may change over time, such as scores, prices, or states.
+* Overview
+:PROPERTIES:
+:ID:       e0c25a0f-2b49-44b6-909f-002db1b39887
+:END:
 
-1. tracking support
- org-web-track retrieves data based on a user-defined URL and selector, which indicate where to access and from which location to gather the data, respectively. Once they are set appropriately, org-web-track looks up on demand and updates the value.
+With =org-web-track=:
 
-2. comprehensible data display
- In the context of org-web-track, an org entry with a URL is considered a tracking item. org-web-track offers a specialized column view for reviewing a group of tracking items, including their current values and updated time.
+- An =org-mode= entry represents a tracking item, which is defined by a URL and a selector. These indicate where to access and from which location to obtain the desired data.
+- Once the URL and the selector are provided, users can begin retrieving data using an interactive command or an Elisp function as needed, and the data is stored in a property drawer.
+- Updated values for all tracking items can be displayed in an =org-mode= column view alongside their previous values and the time of the update.
+- All past values are stored as log data in the entry and can be extracted into an =org-table=. Users can use the table to create visual graphs or perform data analysis.
 
-3. data log utilization
- org-web-track logs all updates and provides a command to create an org table that shows data transitions in ascending order of time. Users can utilize the table in various ways, including for data analysis and visualization.
+[[file:org-web-track-columns_screenshot01.png][Column View]]
 
-=org-web-track= is currently under development. Use it at your own risk.
+** Retrieving data
+:PROPERTIES:
+:ID:       d38d3fb9-c29d-4c22-be74-2e0c31b80616
+:END:
+
+When users specify which snippet of data to track on web pages or web APIs, the following methods are available:
+
+- CSS selectors, which are applied against the source code of the web page
+- Elisp functions, which receive a DOM object or a JSON object from a web page or a web API and are expected to return a desired value from the argument
+- Shell commands, which take a page source or an API response as STDIN and are expected to print a desired value to STDOUT
 
 * Installation
 :PROPERTIES:
 :CREATED:  [2023-06-16 Fri 09:56]
-:END:
-** Requirements
-:PROPERTIES:
-:CREATED:  [2023-06-16 Fri 10:20]
+:ID:       28618b56-b746-47f3-a13f-38d7e59ab766
 :END:
 
-- Emacs 29.1 or higher
-- [[https://github.com/tkf/emacs-request][request.el]] v0.3.2
-- [[https://github.com/zweifisch/enlive][enlive]] v0.0.1
+=org-web-track= is currently under development. Use it at your own risk.
 
-** How to install
-:PROPERTIES:
-:CREATED:  [2023-06-25 Sun 20:55]
-:END:
+- Requirements
+  + Emacs 29.1 or higher
+  + [[https://github.com/tkf/emacs-request][request.el]] v0.3.2
+  + [[https://github.com/zweifisch/enlive][enlive]] v0.0.1
 
 =org-web-track= has not yet been registered in any official package archives. Please consider installing it manually or from my own ELPA using the following steps.
 
@@ -55,50 +65,94 @@
 3. Install org-web-track
    Install org-web-track as you would any other package: via use-package statements, M-x list-packages, or any other way.
 
-* Terminology
-:PROPERTIES:
-:CREATED:  [2024-03-17 Sun 19:04]
-:END:
-
-- Selector
-
-- Tracking Files
-
-
-* Usage
+* Basic Usage
 :PROPERTIES:
 :CREATED:  [2023-06-16 Fri 09:56]
+:ID:       167f452d-19d4-4664-82a6-332e53eaf3b6
 :END:
-** Basic data tracking workflow
+
+In this section, the basic =org-web-track= mechanism and fundamental command usage are described.
+
+** Defining Tracking Items
 :PROPERTIES:
-:CREATED:  [2023-06-16 Fri 10:37]
+:ID:       af45aae0-2011-4b22-b7dc-e156309964a7
 :END:
 
-1. Setup selectors
+Before setting up each tracking item, users need to define =org-web-track-selectors-alist=, which is a list of lists consisting of URL-MATCH and SELECTOR. Each element is responsible for selecting data for the tracking item that has a URL matching against URL-MATCH and applying SELECTOR to the response. An example of =org-web-track-selectors-alist= is as follows:
 
-   #+begin_src text :exports none
-     Users must define selectors when creating tracking items. A selector specifies where to capture data within a specific URL.
-   #+end_src
-   The variable =org-web-track-selector-alist= is used to define a list of selection conditions in the (URL-MATCH . SELECTOR) format. If a tracking item has a URL that matches URL-MATCH, the SELECTOR is applied to the response for that URL to capture data.
+(setq org-web-track-selectors-alist '(("example\\.com/product" [.final-price])))
 
-   #+begin_src org :exports none
-     SELECTOR is either a vector, a function or a string. The vector denotes a CSS selector(See [[https://github.com/zweifisch/enlive#start-of-content][enlive]]). The function will be called in a temporary buffer where HTML document is inserted. The string is meant to be a shell command invoked with piped HTML string.
-   #+end_src
-   SELECTOR can take on one of three forms: a vector, a function, or a string. If a vector is provided, it should represent a CSS selector. If a function is provided, it will be called with a temporary buffer containing the HTML document. If a string is provided, it should represent a shell command that will be invoked with the HTML string piped in.
-2. Creating tracking items
+The above code means that the target value for all product items, which have a URL containing "example.com/product", can be obtained from the HTML response by searching in the tag with a class attribute of "final-price". Refer to the description of =org-web-track-selectors-alist= for detailed guidance on how to define the SELECTOR.
 
-   #+begin_src text :exports none
-     A tracking item in =org-web-track= is represented as a single org entry.
-     User needs to create an org entry first then invoke org-web-track-setup to set a tracking URL and execute initial data tracking.
-   #+end_src
-   To track an item in =org-web-track=, the user needs to create an org entry first and then use =org-web-track-setup= to set a tracking URL and carry out initial data tracking.
-3. Updating data
+Users can also use =org-web-track-test-selector= function to create and/or verify a selector for the specific URL before configuring =org-web-track-selectors-alist=.
 
-   #+begin_src text :exports none
-     User can update data by invoking org-web-track-update in the desired org entry. If data update is detected, org-web-track logs a new record with updated data and timestamp. They have the other option to update all tracking items in org-web-track-files by calling org-web-track-update-all.
-   #+end_src
-   Users can update a specific org entry by invoking =org-web-track-update=. If any updates are detected, =org-web-track= logs a new record with the updated data and a timestamp. Alternatively, users can update all tracking items in =org-web-track-files= by calling =org-web-track-update-all=.
+After appropriately defining =org-web-track-selectors-alist=, users can set up each specific tracking item by calling =org-web-track-setup-entry= on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
 
-* License                                                          :noexport:
+** Updating Values
+:PROPERTIES:
+:CREATED:  [2024-04-22 Mon 17:41]
+:ID:       b21beb3b-9959-4125-bac3-5208ab9ffb4a
+:END:
+
+The simplest way to update the value is to call =org-web-track-update-entry= on the desired org entry. If the retrieved value is updated compared to the last value, the updated value will be stored as the TRACK_CURRENT_VALUE org property; otherwise, the entry will remain unchanged.
+
+Alternatively, bulk updating is supported. To enable bulk updating, users must first define =org-web-track-files=. This variable should be a list of files in which all tracking items, identified by having the TRACK_URL property, are selected for bulk updating. To perform bulk updating, call =org-web-track-update-files=.
+
+** Displaying Column View
+:PROPERTIES:
+:ID:       c0f5a319-d7b2-4792-8780-ca71cf934fd3
+:END:
+
+Column view in org-mode is a feature that displays properties in a table, providing a clear and comprehensive perspective. =org-web-track= offers a specialized column view where updated values are juxtaposed with their previous values for tracking items. To display the column view, call =org-web-track-columns= in org buffer.
+
+If tracking items are scattered across many files, =org-web-track-agenda-columns= is useful as all tracking items in the aforementioned =org-web-track-files= are gathered in the agenda column view. Users can also update any item in the agenda column view by calling =org-web-track-agenda-update=.
+
+** Creating Report
+:PROPERTIES:
+:ID:       589566da-80c5-491f-b1e2-8cbaef8ab387
+:END:
+
+All updated values from the past are logged in the entry using the existing org log note feature. Log notes have a fixed format and are placed in a drawer only if =org-log-into-drawer= is non-nil.
+
+=org-web-track-report= creates a table where all log note values are listed in ascending order of time, showing the transition of values over time. Users can utilize the table to create a graph using Gnuplot or analyze trends with Pandas, for example.
+
+* Extended Examples
+:PROPERTIES:
+:ID:       68639330-230a-4ca2-b9e2-0e7f01022ea3
+:END:
+
+In this section, examples of how to utilize =org-web-track= extensively are showcased.
+
+** Automatic Bulk Updating and Email Notifications
+
+While automatic updating may be ideal in certain situations, =org-web-track= refrains from providing this feature directly to prevent potential data violations. However, users can enable automatic updating by calling =org-web-track-update-entry= or =org-web-track-update-files= from Elisp code. Below is an example implementation of automatic updates with email notifications scheduled for midnight.
+
+#+begin_src emacs-lisp
+(defun exp/email-updated ()
+  "Check for updates on all tracking items in `org-web-track-files'
+and email me the updated list of items formatted as requested."
+  (let* ((message-kill-buffer-on-exit t)
+         (mail-msg (mapconcat
+                    (lambda (chg)
+                      (org-with-point-at chg
+                        (let ((org-trust-scanner-tags t))
+                          (format "%s\n\t%s\n"
+                                  (substring-no-properties
+                                   (org-get-heading t t t t))
+                                  (org-web-track-current-changes nil "%p => %c" " | ")))))
+                    (org-web-track-update-files))))
+    (unless (string-blank-p mail-msg)
+      ;; SMTP settings are required in advance (see smtpmail-xxx vaiables)
+      (message-mail user-mail-address "Web Tracking Notification")
+      (message-goto-body)
+      (insert mail-msg)
+      (message-send-and-exit))))
+
+(require 'midnight)
+(add-hook 'midnight-hook #'exp/email-updated)
+(midnight-mode 1)
+#+end_src
+
+* License
 
 GPLv3
