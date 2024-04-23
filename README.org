@@ -27,7 +27,7 @@ With =org-web-track=:
 - Updated values for all tracking items can be displayed in an =org-mode= column view alongside their previous values and the time of the update.
 - All past values are stored as log data in the entry and can be extracted into an =org-table=. Users can use the table to create visual graphs or perform data analysis.
 
-[[file:org-web-track-columns_screenshot01.png][Column View]]
+[[images/org-web-track-columns_01.png]]
 
 ** Retrieving data
 :PROPERTIES:
