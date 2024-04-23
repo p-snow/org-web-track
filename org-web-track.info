@@ -60,7 +60,7 @@ With ‘org-web-track’:
      extracted into an ‘org-table’.  Users can use the table to create
      visual graphs or perform data analysis.
 
-   Column View (org-web-track-columns_screenshot01.png)
+   [BROKEN LINK: images/org-web-track-columns_01.png]
 
 * Menu:
 
@@ -276,16 +276,16 @@ GPLv3
 Tag Table:
 Node: Top278
 Node: Overview904
-Node: Retrieving data1875
-Node: Installation2476
-Node: Basic Usage3527
-Node: Defining Tracking Items3865
-Node: Updating Values5427
-Node: Displaying Column View6219
-Node: Creating Report7043
-Node: Extended Examples7641
-Node: Automatic Bulk Updating and Email Notifications7932
-Node: License9690
+Node: Retrieving data1873
+Node: Installation2474
+Node: Basic Usage3525
+Node: Defining Tracking Items3863
+Node: Updating Values5425
+Node: Displaying Column View6217
+Node: Creating Report7041
+Node: Extended Examples7639
+Node: Automatic Bulk Updating and Email Notifications7930
+Node: License9688
 
 End Tag Table
 

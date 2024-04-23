@@ -73,7 +73,7 @@ Updated values for all tracking items can be displayed in an @samp{org-mode} col
 All past values are stored as log data in the entry and can be extracted into an @samp{org-table}. Users can use the table to create visual graphs or perform data analysis.
 @end itemize
 
-@uref{org-web-track-columns_screenshot01.png, Column View}
+[BROKEN LINK: images/org-web-track-columns_01.png]
 
 @menu
 * Retrieving data::
