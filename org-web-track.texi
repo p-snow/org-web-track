@@ -6,8 +6,6 @@
 @documentlanguage ja
 @set MAINTAINERSITE @uref{https://github.com/p-snow/org-web-track,website}
 @set MAINTAINER p-snow
-@set MAINTAINEREMAIL @email{public@p-snow.org}
-@set MAINTAINERCONTACT @uref{mailto:public@p-snow.org,contact the maintainer}
 @c %**end of header
 
 @dircategory Emacs
