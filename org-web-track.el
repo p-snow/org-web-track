@@ -279,7 +279,8 @@ failure of retrieval."
                   (funcall on-success marker values))
            (and (functionp on-fail)
                 (apply on-fail marker))
-           (message "No value available at the end of selector appliance")))))
+           (message "No value available at the end of selector appliance"))
+         data)))
     (unless async values)))
 
 (defmacro org-web-track--with-content-buffer (content &rest body)
@@ -395,10 +396,12 @@ after `org-web-track-agenda-columns'."
 
 This function is designed to be set for
 `org-columns-modify-value-for-display-function'."
-  (when (and (org-entry-get (point) org-web-track-url)
-             (string-prefix-p (get 'org-web-track-value 'label)
-                              column-title))
-    (org-web-track-current-changes (point))))
+  (and (org-entry-get (point) org-web-track-url)
+       (string= column-title
+                (get 'org-web-track-value 'label))
+       (string= values
+                (org-entry-get (point) org-web-track-value))
+       (org-web-track-current-changes (point))))
 
 (defun org-web-track-current-changes (&optional pom format separator)
   "Return the current data change on the item at POM using FORMAT and SEPARATOR.
