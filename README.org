@@ -8,8 +8,6 @@
 #+texinfo_dir_desc: An Elisp package to help users keep track of data snippets from web pages in Org Mode
 #+texinfo_header: @set MAINTAINERSITE @uref{https://github.com/p-snow/org-web-track,website}
 #+texinfo_header: @set MAINTAINER p-snow
-#+texinfo_header: @set MAINTAINEREMAIL @email{public@p-snow.org}
-#+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:public@p-snow.org,contact the maintainer}
 
 #+texinfo: @insertcopying
 
