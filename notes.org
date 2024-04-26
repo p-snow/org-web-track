@@ -1,7 +1,7 @@
 #+begin_src text :exports none
 About:
 
-An Elisp package to help users keep track of data snippets from web pages in Org Mode
+An Emacs package to help users keep track of data snippets from web pages or web APIs in Org Mode
 #+end_src
 
 #+begin_src text :exports none
