@@ -166,7 +166,7 @@ If called interactively, update the org entry at point.
 This command looks up the current values and updates `org-web-track-value'
 and `org-web-track-prev-value' if the values have been changed,
 then logs them using org's logging feature.  The placement of logs respects
-`org-log-into-drawer'."
+the configuration in the variable `org-log-into-drawer'."
   (interactive (list (point-marker)))
   (when-let* ((track-url (org-entry-get marker org-web-track-url))
               (updates (funcall #'org-web-track-retrieve-values
