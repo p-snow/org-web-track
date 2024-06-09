@@ -5,11 +5,14 @@
 #+texinfo_filename: org-web-track.info
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Org Web Track: (org-web-track)
-#+texinfo_dir_desc: An Elisp package to help users keep track of data snippets from web pages in Org Mode
+#+texinfo_dir_desc: Web data tracking framework in Org Mode
 #+texinfo_header: @set MAINTAINERSITE @uref{https://github.com/p-snow/org-web-track,website}
 #+texinfo_header: @set MAINTAINER p-snow
 
 #+texinfo: @insertcopying
+
+#+html: <a href="https://melpa.org/#/org-web-track"><img alt="MELPA" src="https://melpa.org/packages/org-web-track-badge.svg"/></a>
+#+html: <a href="https://stable.melpa.org/#/org-web-track"><img alt="MELPA Stable" src="https://stable.melpa.org/packages/org-web-track-badge.svg"/></a>
 
 =org-web-track= provides an =org-mode= framework that helps users track, manage, and leverage data such as scores, prices, or states from web pages and web APIs.
 
@@ -25,7 +28,7 @@ With =org-web-track= users can:
 - Manage a group of tracking items using the =org-mode= column view capability.
 - Take advantage of data logs, which are provided as an =org-mode= table, to create a value transitive graph, for example.
 
-[[images/org-web-track-columns_01.png]]
+#+html: <img src="https://github.com/p-snow/org-web-track/blob/main/images/org-web-track-columns_01.png?raw=true">
 
 ** Retrieving data
 :PROPERTIES:
@@ -44,24 +47,12 @@ When users specify which snippet of data to track on web pages or web APIs, the 
 :ID:       28618b56-b746-47f3-a13f-38d7e59ab766
 :END:
 
-=org-web-track= is currently under development. Use it at your own risk.
+=org-web-track= can be installed directly from MELPA using =package-install=. Please note that the following packages are required.
 
-- Requirements
-  + Emacs 29.1 or higher
-  + [[https://github.com/tkf/emacs-request][request.el]] v0.3.2
-  + [[https://github.com/zweifisch/enlive][enlive]] v0.0.1
-
-=org-web-track= has not yet been registered in any official package archives. Please consider installing it manually or from my own ELPA using the following steps.
-
-1. Add p-snow's archive to your package-archives list
-   #+begin_src emacs-lisp
-   (require 'package)
-   (add-to-list 'package-archives '("p-snow" . "https://p-snow.org/packages/"))
-   #+end_src
-2. Refresh package list
-   Use the command M-x package-refresh-contents after updating the archives to download a listing of packages in the archives.
-3. Install org-web-track
-   Install org-web-track as you would any other package: via use-package statements, M-x list-packages, or any other way.
+Requirements:
+- Emacs 29.1 or higher
+- [[https://github.com/tkf/emacs-request][request.el]] v0.3.2
+- [[https://github.com/zweifisch/enlive][enlive]] v0.0.1
 
 * Basic Usage
 :PROPERTIES:

@@ -3,15 +3,15 @@ org-web-track.texi.
 
 INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
-* Org Web Track: (org-web-track). An Elisp package to help users keep track of data snippets from web pages in Org Mode.
+* Org Web Track: (org-web-track). Web data tracking framework in Org Mode.
 END-INFO-DIR-ENTRY
 
 
 File: org-web-track.info,  Node: Top,  Next: Overview,  Up: (dir)
 
-‘org-web-track’ is an Emacs package that provides commands to assist
-users in keeping track of data snippets from web pages or web APIs that
-may change over time, such as scores, prices, or states in ‘org-mode’.
+‘org-web-track’ provides an ‘org-mode’ framework that helps users track,
+manage, and leverage data such as scores, prices, or states from web
+pages and web APIs.
 
 * Menu:
 
@@ -45,22 +45,16 @@ File: org-web-track.info,  Node: Overview,  Next: Installation,  Prev: Top,  Up:
 Overview
 ********
 
-With ‘org-web-track’:
+With ‘org-web-track’ users can:
 
-   • An ‘org-mode’ entry represents a tracking item, which is defined by
-     a URL and a selector.  These indicate where to access and from
-     which location to obtain the desired data.
-   • Once the URL and the selector are provided, users can begin
-     retrieving data using an interactive command or an Elisp function
-     as needed, and the data is stored in a property drawer.
-   • Updated values for all tracking items can be displayed in an
-     ‘org-mode’ column view alongside their previous values and the time
-     of the update.
-   • All past values are stored as log data in the entry and can be
-     extracted into an ‘org-table’.  Users can use the table to create
-     visual graphs or perform data analysis.
-
-   [BROKEN LINK: images/org-web-track-columns_01.png]
+   • Define a tracking item as an ‘org-mode’ entry with a URL and
+     selector, which indicate where to access and from which location to
+     obtain the desired data, respectively.
+   • Update tracking items at any time and check their value.
+   • Manage a group of tracking items using the ‘org-mode’ column view
+     capability.
+   • Take advantage of data logs, which are provided as an ‘org-mode’
+     table, to create a value transitive graph, for example.
 
 * Menu:
 
@@ -89,27 +83,14 @@ File: org-web-track.info,  Node: Installation,  Next: Basic Usage,  Prev: Overvi
 Installation
 ************
 
-‘org-web-track’ is currently under development.  Use it at your own
-risk.
+‘org-web-track’ can be installed directly from MELPA using
+‘package-install’.  Please note that the following packages are
+required.
 
-   • Requirements
-        • Emacs 29.1 or higher
-        • request.el (https://github.com/tkf/emacs-request) v0.3.2
-        • enlive (https://github.com/zweifisch/enlive) v0.0.1
-
-   ‘org-web-track’ has not yet been registered in any official package
-archives.  Please consider installing it manually or from my own ELPA
-using the following steps.
-
-  1. Add p-snow's archive to your package-archives list
-          (require 'package)
-          (add-to-list 'package-archives '("p-snow" . "https://p-snow.org/packages/"))
-  2. Refresh package list Use the command M-x package-refresh-contents
-     after updating the archives to download a listing of packages in
-     the archives.
-  3. Install org-web-track Install org-web-track as you would any other
-     package: via use-package statements, M-x list-packages, or any
-     other way.
+   Requirements:
+   • Emacs 29.1 or higher
+   • request.el (https://github.com/tkf/emacs-request) v0.3.2
+   • enlive (https://github.com/zweifisch/enlive) v0.0.1
 
 
 File: org-web-track.info,  Node: Basic Usage,  Next: Extended Examples,  Prev: Installation,  Up: Top
@@ -274,18 +255,18 @@ GPLv3
 
 
 Tag Table:
-Node: Top278
-Node: Overview904
-Node: Retrieving data1873
-Node: Installation2474
-Node: Basic Usage3525
-Node: Defining Tracking Items3863
-Node: Updating Values5425
-Node: Displaying Column View6217
-Node: Creating Report7041
-Node: Extended Examples7639
-Node: Automatic Bulk Updating and Email Notifications7930
-Node: License9688
+Node: Top232
+Node: Overview808
+Node: Retrieving data1467
+Node: Installation2068
+Node: Basic Usage2502
+Node: Defining Tracking Items2840
+Node: Updating Values4402
+Node: Displaying Column View5194
+Node: Creating Report6018
+Node: Extended Examples6616
+Node: Automatic Bulk Updating and Email Notifications6907
+Node: License8665
 
 End Tag Table
 

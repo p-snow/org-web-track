@@ -1,4 +1,4 @@
-;;; org-web-track.el --- Web data tracking framework in org mode -*- lexical-binding: t -*-
+;;; org-web-track.el --- Web data tracking framework in Org Mode -*- lexical-binding: t -*-
 
 ;; Author: p-snow <public@p-snow.org>
 ;; Maintainer: p-snow <public@p-snow.org>
