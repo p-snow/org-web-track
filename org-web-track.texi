@@ -1,7 +1,7 @@
 \input texinfo    @c -*- texinfo -*-
 @c %**start of header
 @setfilename org-web-track.info
-@settitle 
+@settitle org-web-track.el - Web data tracking framework in Org Mode
 @documentencoding UTF-8
 @documentlanguage ja
 @set MAINTAINERSITE @uref{https://github.com/p-snow/org-web-track,website}
@@ -15,12 +15,12 @@
 
 @finalout
 @titlepage
-@title 
+@title org-web-track.el - Web data tracking framework in Org Mode
 @end titlepage
 
 @ifnottex
 @node Top
-@top 
+@top org-web-track.el - Web data tracking framework in Org Mode
 
 @insertcopying
 

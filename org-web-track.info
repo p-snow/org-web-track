@@ -9,6 +9,9 @@ END-INFO-DIR-ENTRY
 
 File: org-web-track.info,  Node: Top,  Next: Overview,  Up: (dir)
 
+org-web-track.el - Web data tracking framework in Org Mode
+**********************************************************
+
 ‘org-web-track’ provides an ‘org-mode’ framework that helps users track,
 manage, and leverage data such as scores, prices, or states from web
 pages and web APIs.
@@ -256,17 +259,17 @@ GPLv3
 
 Tag Table:
 Node: Top232
-Node: Overview808
-Node: Retrieving data1467
-Node: Installation2068
-Node: Basic Usage2502
-Node: Defining Tracking Items2840
-Node: Updating Values4402
-Node: Displaying Column View5194
-Node: Creating Report6018
-Node: Extended Examples6616
-Node: Automatic Bulk Updating and Email Notifications6907
-Node: License8665
+Node: Overview927
+Node: Retrieving data1586
+Node: Installation2187
+Node: Basic Usage2621
+Node: Defining Tracking Items2959
+Node: Updating Values4521
+Node: Displaying Column View5313
+Node: Creating Report6137
+Node: Extended Examples6735
+Node: Automatic Bulk Updating and Email Notifications7026
+Node: License8784
 
 End Tag Table
 
