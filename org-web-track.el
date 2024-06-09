@@ -211,7 +211,7 @@ the configuration in the variable `org-log-into-drawer'."
 
 ;;;###autoload
 (defun org-web-track-update-files ()
-  "Update all track items (org entries) in `org-web-track-files'.
+  "Update all track items in variable `org-web-track-files'.
 
 Return a list of markers pointing to items where the value has been updated."
   (interactive)
@@ -460,7 +460,7 @@ to display current changes on tracking items along with the updated time."
   "Display a agenda column view specialized for tracking items.
 
 This command invokes `org-agenda-columns' with `org-web-track-columns-format'
-to display current changes on tracking items in `org-web-track-files'
+to display current changes on tracking items in variable `org-web-track-files'
 along with the updated time."
   (interactive)
   (let ((org-columns-modify-value-for-display-function
