@@ -1,11 +1,5 @@
 #+begin_src text :exports none
 About:
 
-An Emacs package to help users keep track of data snippets from web pages or web APIs in Org Mode
-#+end_src
-
-#+begin_src text :exports none
-Commentary:
-
-org-web-track offers a set of Elisp functions and commands that are useful for keeping track of data snippets web pages in Org Mode.
+Org Mode framework for managing data from web pages and web APIs.
 #+end_src
