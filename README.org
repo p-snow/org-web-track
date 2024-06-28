@@ -143,6 +143,12 @@ and email me the updated list of items formatted as requested."
 (midnight-mode 1)
 #+end_src
 
+* Q&A
+
+** Network Certificate Issue
+
+Non-interactive invocation for org-web-track-update-entry may fail due to an unverified network certificate. This issue can occur when accessing a website that offers an unverified certificate, and the variable network-security-level is set to 'medium' or higher. To address the issue, accept the certificate by calling the org-web-track-update-entry command interactively up-front.
+
 * License
 
 GPLv3
