@@ -22,6 +22,7 @@ pages and web APIs.
 * Installation::
 * Basic Usage::
 * Extended Examples::
+* Q&A::
 * License::
 
 -- The Detailed Node Listing --
@@ -40,6 +41,10 @@ Basic Usage
 Extended Examples
 
 * Automatic Bulk Updating and Email Notifications::
+
+Q&A
+
+* Network Certificate Issue::
 
 
 
@@ -198,7 +203,7 @@ time.  Users can utilize the table to create a graph using Gnuplot or
 analyze trends with Pandas, for example.
 
 
-File: org-web-track.info,  Node: Extended Examples,  Next: License,  Prev: Basic Usage,  Up: Top
+File: org-web-track.info,  Node: Extended Examples,  Next: Q&A,  Prev: Basic Usage,  Up: Top
 
 Extended Examples
 *****************
@@ -248,7 +253,30 @@ updates with email notifications scheduled for midnight.
      (midnight-mode 1)
 
 
-File: org-web-track.info,  Node: License,  Prev: Extended Examples,  Up: Top
+File: org-web-track.info,  Node: Q&A,  Next: License,  Prev: Extended Examples,  Up: Top
+
+Q&A
+***
+
+* Menu:
+
+* Network Certificate Issue::
+
+
+File: org-web-track.info,  Node: Network Certificate Issue,  Up: Q&A
+
+Network Certificate Issue
+=========================
+
+Non-interactive invocation for org-web-track-update-entry may fail due
+to an unverified network certificate.  This issue can occur when
+accessing a website that offers an unverified certificate, and the
+variable network-security-level is set to 'medium' or higher.  To
+address the issue, accept the certificate by calling the
+org-web-track-update-entry command interactively up-front.
+
+
+File: org-web-track.info,  Node: License,  Prev: Q&A,  Up: Top
 
 License
 *******
@@ -259,17 +287,19 @@ GPLv3
 
 Tag Table:
 Node: Top232
-Node: Overview927
-Node: Retrieving data1586
-Node: Installation2187
-Node: Basic Usage2621
-Node: Defining Tracking Items2959
-Node: Updating Values4521
-Node: Displaying Column View5313
-Node: Creating Report6137
-Node: Extended Examples6735
-Node: Automatic Bulk Updating and Email Notifications7026
-Node: License8784
+Node: Overview971
+Node: Retrieving data1630
+Node: Installation2231
+Node: Basic Usage2665
+Node: Defining Tracking Items3003
+Node: Updating Values4565
+Node: Displaying Column View5357
+Node: Creating Report6181
+Node: Extended Examples6779
+Node: Automatic Bulk Updating and Email Notifications7066
+Node: Q&A8824
+Node: Network Certificate Issue8965
+Node: License9476
 
 End Tag Table
 

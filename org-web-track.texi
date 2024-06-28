@@ -25,6 +25,7 @@
 @insertcopying
 
 @samp{org-web-track} provides an @samp{org-mode} framework that helps users track, manage, and leverage data such as scores, prices, or states from web pages and web APIs.
+
 @end ifnottex
 
 @menu
@@ -32,6 +33,7 @@
 * Installation::
 * Basic Usage::
 * Extended Examples::
+* Q&A::
 * License::
 
 @detailmenu
@@ -51,6 +53,10 @@ Basic Usage
 Extended Examples
 
 * Automatic Bulk Updating and Email Notifications::
+
+Q&A
+
+* Network Certificate Issue::
 
 @end detailmenu
 @end menu
@@ -189,6 +195,18 @@ and email me the updated list of items formatted as requested."
 (add-hook 'midnight-hook #'exp/email-updated)
 (midnight-mode 1)
 @end lisp
+
+@node Q&A
+@unnumbered Q&A
+
+@menu
+* Network Certificate Issue::
+@end menu
+
+@node Network Certificate Issue
+@unnumberedsec Network Certificate Issue
+
+Non-interactive invocation for org-web-track-update-entry may fail due to an unverified network certificate. This issue can occur when accessing a website that offers an unverified certificate, and the variable network-security-level is set to 'medium' or higher. To address the issue, accept the certificate by calling the org-web-track-update-entry command interactively up-front.
 
 @node License
 @unnumbered License
