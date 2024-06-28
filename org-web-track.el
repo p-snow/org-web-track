@@ -71,6 +71,9 @@
 (defvar org-web-track-update-timeout 20
   "Time out in second for accessing web site to get values.")
 
+(defvar org-web-track-value-column-format "%c [%p]"
+  "Column format where current and previous values are placed in %c and %p.")
+
 ;;;; Customization
 
 (defgroup org-web-track nil
@@ -410,7 +413,9 @@ This function is designed to be set for
 `org-columns-modify-value-for-display-function'."
   (and (org-entry-get (point) org-web-track-url)
        (string= column-title
-                (get 'org-web-track-value 'label))
+                (format-spec org-web-track-value-column-format
+                             `((?p . ,(get 'org-web-track-prev-value 'label))
+                               (?c . ,(get 'org-web-track-value 'label)))))
        (string= values
                 (org-entry-get (point) org-web-track-value))
        (org-web-track-current-changes (point))))
@@ -427,20 +432,21 @@ SEPARATOR is used in between changes for multiple targets."
     (cl-do ((curr-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-value) (cdr curr-vals))
             (prev-vals (org-entry-get-multivalued-property (or pom (point)) org-web-track-prev-value) (cdr prev-vals)))
         ((not (or curr-vals prev-vals)) (string-join (nreverse chnages) (or separator ", ")))
-      (push (format-spec (or format "%c [%p]")
+      (push (format-spec (or format org-web-track-value-column-format)
                          `((?p . ,(or (car prev-vals) "N/A"))
                            (?c . ,(or (car curr-vals) "N/A"))))
             chnages))))
 
 (defun org-web-track-columns-format ()
   "Return columns format for `org-columns' for org-web-track."
-  (apply #'format "%%%sITEM %%%s%s(%s [%s]) %%%s(%s)"
+  (apply #'format "%%%sITEM %%%s%s(%s) %%%s(%s)"
          `(,@(mapcar (lambda (w) (if (= 0 w) "" (format "%d" w)))
                      `(,org-web-track-item-column-width
                        ,org-web-track-update-column-width))
            ,org-web-track-value
-           ,(get 'org-web-track-value 'label)
-           ,(get 'org-web-track-prev-value 'label)
+           ,(format-spec org-web-track-value-column-format
+                         `((?p . ,(get 'org-web-track-prev-value 'label))
+                           (?c . ,(get 'org-web-track-value 'label))))
            ,org-web-track-updated
            ,(get 'org-web-track-updated 'label))))
 
@@ -465,7 +471,7 @@ along with the updated time."
   (interactive)
   (let ((org-columns-modify-value-for-display-function
          'org-web-track-display-values)
-        (org-overriding-columns-format (org-web-track-columns-format))
+        (org-columns-default-format-for-agenda (org-web-track-columns-format))
         (org-agenda-files (org-web-track-files))
         (org-agenda-sorting-strategy '((tags user-defined-up)))
         (org-agenda-cmp-user-defined 'org-web-track-cmp-updated-time)
