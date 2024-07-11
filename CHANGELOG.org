@@ -1,0 +1,13 @@
+#+title: Change log of Org Web Track
+#+language: en
+#+options: ':t toc:nil num:t
+#+startup: content
+
+* Version 0.0.3
+:PROPERTIES:
+:CREATED:  [2024-07-11 Thu 14:43]
+:END:
+
+- Change the default backend for fetching data from =url-retrieve= to cURL
+  Users can still choose to use =url-retrieve= instead by setting
+  =org-web-track-use-curl= to nil.

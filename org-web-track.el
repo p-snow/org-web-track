@@ -139,6 +139,13 @@ or a function that returns the same data structure."
           (function))
   :group 'org-web-track)
 
+(defcustom org-web-track-use-curl
+  (not (null (executable-find "curl")))
+  "If non-nil, cURL is used as the fetching backend, instead of `url-retrieve'."
+  :group 'org-web-track
+  :package-version '(org-web-track . "0.0.3")
+  :type 'boolean)
+
 (defcustom org-web-track-item-column-width 0
   "0 means unspecified."
   :type 'natnum
@@ -240,9 +247,10 @@ failure of retrieval."
                                 (cond
                                  ((functionp car) (funcall car key))
                                  ((stringp car) (string-match-p car key))))))
-              (request-backend 'url-retrieve)
-              (request-curl-options
-               `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
+              (`(,request-backend . ,request-curl-options)
+               (if org-web-track-use-curl
+                   (cons 'curl `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
+                 (cons 'url-retrieve nil)))
               (values nil))
     (unless selectors
       (and (functionp on-fail)
