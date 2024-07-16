@@ -230,17 +230,8 @@ Return a list of markers pointing to items where the value has been updated."
                              (format "%s={.+}" org-web-track-url)
                              (org-web-track-files))))
 
-(defun org-web-track-retrieve-values (url &optional async on-success on-fail marker)
-  "Retrieve values by accessing the URL.
-
-If ASYNC is non-nil, the networking procedure will be executed asynchronously.
-However, as of now, asynchronous data retrieval is discouraged.
-
-ON-SUCCESS must be a function that takes two arguments, MARKER and retrieved
-values, and will be called after the completion of retrieval.
-
-ON-FAIL must be a function that takes MARKER and will be called after the
-failure of retrieval."
+(defun org-web-track-retrieve-values (url)
+  "Retrieve values by accessing the URL."
   (pcase-let ((`(,selectors . (,filter))
                (assoc-default url org-web-track-selectors-alist
                               (lambda (car key)
@@ -252,59 +243,53 @@ failure of retrieval."
                    (cons 'curl `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
                  (cons 'url-retrieve nil)))
               (values nil))
-    (unless selectors
-      (and (functionp on-fail)
-           (progn (apply on-fail marker)
-                  (user-error "No selector available for this entry"))))
-    (request url
-      :sync (not async)
-      :timeout org-web-track-update-timeout
-      :success
-      (cl-function
-       (lambda (&key response &allow-other-keys)
-         (let* ((content-type (request-response-header response "content-type"))
-                (content-charset (if (string-match url-mime-content-type-charset-regexp
-                                                   content-type)
-                                     (match-string 1 content-type)
-                                   ""))
-                (coding-sys (intern (downcase content-charset)))
-                (content (request-response-data response)))
-           (setq values
-                 (ensure-list
-                  (apply
-                   (or filter 'list)
-                   (flatten-list
-                    (mapcar (lambda (selector)
-                              (funcall #'org-web-track--select-value
-                                       (when (string-match (rx (or (seq (or "application/" "text/")
-                                                                        (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
-                                                           content-type)
-                                         (intern (match-string 1 content-type)))
-                                       (decode-coding-string content
-                                                             (and (member coding-sys (coding-system-list))
-                                                                  coding-sys))
-                                       selector))
-                            (if (functionp selectors)
-                                (list selectors)
-                              (ensure-list selectors))))))))))
-      :error
-      (cl-function
-       (lambda (&key response &allow-other-keys)
-         (when (eq (request-response-symbol-status response) 'timeout)
-           (setq values nil))
-         (message "Error %s occurred"
-                  (request-response-error-thrown response))))
-      :complete
-      (cl-function
-       (lambda (&key data &allow-other-keys)
-         (if (seq-some 'stringp values)
-             (and (functionp on-success)
-                  (funcall on-success marker values))
-           (and (functionp on-fail)
-                (apply on-fail marker))
-           (message "No value available at the end of selector appliance"))
-         data)))
-    (unless async values)))
+    (if selectors
+        (request url
+          :sync t
+          :timeout org-web-track-update-timeout
+          :success
+          (cl-function
+           (lambda (&key response &allow-other-keys)
+             (let* ((content-type (request-response-header response "content-type"))
+                    (content-charset (if (string-match url-mime-content-type-charset-regexp
+                                                       content-type)
+                                         (match-string 1 content-type)
+                                       ""))
+                    (coding-sys (intern (downcase content-charset)))
+                    (content (request-response-data response)))
+               (setq values
+                     (ensure-list
+                      (apply
+                       (or filter 'list)
+                       (flatten-list
+                        (mapcar (lambda (selector)
+                                  (funcall #'org-web-track--select-value
+                                           (when (string-match (rx (or (seq (or "application/" "text/")
+                                                                            (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
+                                                               content-type)
+                                             (intern (match-string 1 content-type)))
+                                           (decode-coding-string content
+                                                                 (and (member coding-sys (coding-system-list))
+                                                                      coding-sys))
+                                           selector))
+                                (if (functionp selectors)
+                                    (list selectors)
+                                  (ensure-list selectors))))))))))
+          :error
+          (cl-function
+           (lambda (&key response &allow-other-keys)
+             (when (eq (request-response-symbol-status response) 'timeout)
+               (setq values nil))
+             (message "Network error occurred: %s"
+                      (request-response-error-thrown response))))
+          :complete
+          (cl-function
+           (lambda (&key data &allow-other-keys)
+             (unless (seq-some 'stringp values)
+               (message "No value was retrieved"))
+             data)))
+      (user-error "No selector is available for %s" url))
+    values))
 
 (defmacro org-web-track--with-content-buffer (content &rest body)
   "Execute BODY in the temporary buffer where CONTENT is inserted."
