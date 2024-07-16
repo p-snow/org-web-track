@@ -57,3 +57,6 @@ endif
 .DEFAULT: init
 init:
 	@./makem.sh $(DEBUG) $(VERBOSE) $(SANDBOX) $(INSTALL_DEPS) $(INSTALL_LINTERS)
+
+env:
+	guix shell -m manifest.scm
