@@ -264,8 +264,10 @@ Return a list of markers pointing to items where the value has been updated."
                        (flatten-list
                         (mapcar (lambda (selector)
                                   (funcall #'org-web-track--select-value
-                                           (when (string-match (rx (or (seq (or "application/" "text/")
-                                                                            (group-n 1 (or "html" "xml" "json" "csv" "plain")))))
+                                           (when (string-match (rx (or (seq "application/" (group-n 1 "json"))
+                                                                       (seq "text/" (group-n 1 "html"))
+                                                                       (seq "application/" (group-n 1 "xml"))
+                                                                       (seq "text/" (group-n 1 "plain"))))
                                                                content-type)
                                              (intern (match-string 1 content-type)))
                                            (decode-coding-string content
@@ -299,24 +301,24 @@ Return a list of markers pointing to items where the value has been updated."
      (insert ,content)
      ,@body))
 
-(defun org-web-track--select-value (format content selector)
-  "Return a value derived from CONTENT which is FORMAT format by using SELECTOR."
+(defun org-web-track--select-value (subtype content selector)
+  "Return a value by applying SELECTOR to CONTENT, whose MIME subtype is SUBTYPE."
   (let ((val (cond
               ((stringp selector)
                (org-web-track--with-content-buffer content
                  (when (= 0 (shell-command-on-region (point-min) (point-max) selector t t))
                    (buffer-substring-no-properties (point-min) (point-max)))))
               ((functionp selector)
-               (funcall selector (cond
-                                  ((eq format 'json) (json-parse-string content :object-type 'alist))
-                                  ((eq format 'html)
-                                   (org-web-track--with-content-buffer content
-                                     (libxml-parse-html-region)))
-                                  ((eq format 'xml)
-                                   (org-web-track--with-content-buffer content
-                                     (libxml-parse-xml-region))))))
+               (funcall selector
+                        (pcase subtype
+                          ('json (json-parse-string content :object-type 'alist))
+                          ('html (org-web-track--with-content-buffer content
+                                   (libxml-parse-html-region)))
+                          ('xml (org-web-track--with-content-buffer content
+                                  (libxml-parse-xml-region)))
+                          ('plain content))))
               ((and (vectorp selector)
-                    (eq format 'html))
+                    (eq subtype 'html))
                (enlive-text (enlive-query (enlive-parse content)
                                           selector))))))
     (cl-labels ((validate-value (str)
