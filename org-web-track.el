@@ -203,7 +203,10 @@ and `org-web-track-prev-value' if the values have been changed,
 then logs them using org's logging feature.  The placement of logs respects
 the configuration in the variable `org-log-into-drawer'."
   (interactive (list (point-marker)))
-  (when-let* ((track-url (org-entry-get marker org-web-track-url))
+  (when-let* ((track-url (rx-let ((url-re (seq (regexp "https?://") (+ graph))))
+                           (pcase (org-entry-get marker org-web-track-url)
+                             ((rx "[[" (let link url-re) "][" (* print) "]]") link)
+                             ((rx (let url url-re)) url))))
               (updates (funcall #'org-web-track-retrieve-values
                                 track-url
                                 (org-entry-get marker org-web-track-unix-socket)))
