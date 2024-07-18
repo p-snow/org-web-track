@@ -38,6 +38,10 @@ Basic Usage
 * Displaying Column View::
 * Creating Report::
 
+Defining Tracking Items
+
+* Accessing Unix Domain Socket Server::
+
 Extended Examples
 
 * Automatic Bulk Updating and Email Notifications::
@@ -150,6 +154,33 @@ heading to create a new one in the org buffer.  Users will be prompted
 to input the tracking URL, and then the updated value will be retrieved,
 stored, and displayed in the echo area according to the aforementioned
 settings.
+
+     * Book ABC
+     :PROPERTIES:
+     :TRACK_URL: https://example.com/products/book-abc.html
+     :TRACK_CURRENT_VALUE: $30
+     :TRACK_LAST_UPDATED_TIME: [2024-07-18 Thu 16:57]
+     :END:
+     :LOGBOOK:
+     - Update "$30"       [2024-07-18 Thu 16:57]
+     :END:
+
+* Menu:
+
+* Accessing Unix Domain Socket Server::
+
+
+File: org-web-track.info,  Node: Accessing Unix Domain Socket Server,  Up: Defining Tracking Items
+
+Accessing Unix Domain Socket Server
+-----------------------------------
+
+While org-web-track primarily focuses on the WWW server as the access
+target, users also have the option to connect to a Unix Domain Socket
+server that provides HTTP services on a local machine.  A simple example
+of a Unix Socket server implementation complying with the org-web-track
+framework can be found at
+<https://github.com/p-snow/socket-http-server>.
 
 
 File: org-web-track.info,  Node: Updating Values,  Next: Displaying Column View,  Prev: Defining Tracking Items,  Up: Basic Usage
@@ -287,19 +318,20 @@ GPLv3
 
 Tag Table:
 Node: Top232
-Node: Overview971
-Node: Retrieving data1630
-Node: Installation2231
-Node: Basic Usage2665
-Node: Defining Tracking Items3003
-Node: Updating Values4565
-Node: Displaying Column View5357
-Node: Creating Report6181
-Node: Extended Examples6779
-Node: Automatic Bulk Updating and Email Notifications7066
-Node: Q&A8824
-Node: Network Certificate Issue8965
-Node: License9476
+Node: Overview1037
+Node: Retrieving data1696
+Node: Installation2297
+Node: Basic Usage2731
+Node: Defining Tracking Items3069
+Node: Accessing Unix Domain Socket Server4947
+Node: Updating Values5482
+Node: Displaying Column View6274
+Node: Creating Report7098
+Node: Extended Examples7696
+Node: Automatic Bulk Updating and Email Notifications7983
+Node: Q&A9741
+Node: Network Certificate Issue9882
+Node: License10393
 
 End Tag Table
 

@@ -64,6 +64,9 @@
 (defvar org-web-track-url "TRACK_URL"
   "Property name for a URL to track.")
 
+(defvar org-web-track-unix-socket "TRACK_UNIX_SOCKET"
+  "Property name for a Unix Domain Socket path to connect.")
+
 (defvar org-web-track-updated "TRACK_LAST_UPDATED_TIME"
   "Property name for the date at which track value.")
 (put 'org-web-track-updated 'label "UPDATED TIME")
@@ -164,17 +167,27 @@ or a function that returns the same data structure."
     ((and (pred listp) li) li)))
 
 ;;;###autoload
-(defun org-web-track-setup-entry (url)
+(defun org-web-track-setup-entry (url &optional unix-socket)
   "Initialize the entry at point by setting URL to `org-web-track-url'.
 
 If point is positioned before the first org heading, insert a new one above it
 initially.  After the URL has been set, try to retrieve a value if there is
-an appropriate selector in `org-web-track-selectors-alist'."
+an appropriate selector in `org-web-track-selectors-alist'.
+
+If UNIX-SOCKET.If an optional argument UNIX-SOCKET is provided as a path for a
+Unix Domain Socket, a property named `org-web-track-unix-socket' will be added
+with its value. If this function is called interactively with a `C-u' prefix, a
+prompt to set UNIX-SOCKET will appear."
   (interactive (list (read-string "URL: "
-                                  (org-entry-get (point) org-web-track-url))))
+                                  (org-entry-get (point) org-web-track-url))
+                     (when (equal current-prefix-arg '(4))
+                       (read-string "Unix Socket: "))))
   (when (org-before-first-heading-p)
     (org-insert-heading))
-  (org-entry-put (point) org-web-track-url url)
+  (when (stringp url)
+    (org-entry-put (point) org-web-track-url url))
+  (when (stringp unix-socket)
+    (org-entry-put (point) org-web-track-unix-socket unix-socket))
   (if (assoc-default url org-web-track-selectors-alist #'string-match)
       (org-web-track-update-entry)
     (message "No selector for the URL. Please set up `org-web-track-selectors-alist'.")))
@@ -192,7 +205,8 @@ the configuration in the variable `org-log-into-drawer'."
   (interactive (list (point-marker)))
   (when-let* ((track-url (org-entry-get marker org-web-track-url))
               (updates (funcall #'org-web-track-retrieve-values
-                                track-url))
+                                track-url
+                                (org-entry-get marker org-web-track-unix-socket)))
               (current-time (format-time-string (org-time-stamp-format t t)))
               (org-log-note-headings (append '((update . "Update %-12s %t"))
                                              org-log-note-headings)))
@@ -230,8 +244,12 @@ Return a list of markers pointing to items where the value has been updated."
                              (format "%s={.+}" org-web-track-url)
                              (org-web-track-files))))
 
-(defun org-web-track-retrieve-values (url)
-  "Retrieve values by accessing the URL."
+(defun org-web-track-retrieve-values (url &optional unix-socket)
+  "Retrieve values by accessing the URL.
+
+If an optional argument UNIX-SOCKET is provided as a path for a Unix Domain
+Socket to connect, the function will attempt to access the HTTP socket server
+running on the local machine instead of the WWW server."
   (pcase-let ((`(,selectors . (,filter))
                (assoc-default url org-web-track-selectors-alist
                               (lambda (car key)
@@ -247,6 +265,7 @@ Return a list of markers pointing to items where the value has been updated."
         (request url
           :sync t
           :timeout org-web-track-update-timeout
+          :unix-socket unix-socket
           :success
           (cl-function
            (lambda (&key response &allow-other-keys)
