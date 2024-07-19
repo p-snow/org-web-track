@@ -3,7 +3,7 @@
 #+options: ':t toc:nil num:t
 #+startup: content
 
-* Version 0.0.3
+* Version 0.0.3 on 2024-07-19
 :PROPERTIES:
 :CREATED:  [2024-07-11 Thu 14:43]
 :END:
@@ -11,3 +11,5 @@
 - Change the default backend for fetching data from =url-retrieve= to cURL
   Users can still choose to use =url-retrieve= instead by setting
   =org-web-track-use-curl= to nil.
+- Add support for Unix Domain Socket server as an access target
+  In addition to the WWW server, users can optionally access an HTTP server listening on a Unix Domain Socket by calling =org-web-track-setup-entry= with a C-u prefix to define a socket path.
