@@ -12,4 +12,6 @@
   Users can still choose to use =url-retrieve= instead by setting
   =org-web-track-use-curl= to nil.
 - Add support for Unix Domain Socket server as an access target
-  In addition to the WWW server, users can optionally access an HTTP server listening on a Unix Domain Socket by calling =org-web-track-setup-entry= with a C-u prefix to define a socket path.
+  In addition to the WWW server, users can optionally access an HTTP server
+  listening on a Unix Domain Socket by calling =org-web-track-setup-entry= with a
+  C-u prefix to define a socket path.
