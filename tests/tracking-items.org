@@ -1,0 +1,16 @@
+#+TITLE: Tracking Items
+
+* 001: No TRACK_URL
+* 002: Valid TRACK_URL
+:PROPERTIES:
+:TRACK_URL: https://www.example.com/product01
+:END:
+* 003: Valid TRACK_URL, which follows the org-link format
+:PROPERTIES:
+:TRACK_URL: [[https://www.example.com/product01][Example Com]]
+:END:
+* 004: Valid TRACK_URL and TRACK_UNIX_SOCKET
+:PROPERTIES:
+:TRACK_URL: https://www.example.com/product01
+:TRACK_UNIX_SOCKET: /tmp/test.sock
+:END:

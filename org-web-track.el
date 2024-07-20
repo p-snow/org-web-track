@@ -174,23 +174,22 @@ If point is positioned before the first org heading, insert a new one above it
 initially.  After the URL has been set, try to retrieve a value if there is
 an appropriate selector in `org-web-track-selectors-alist'.
 
-If UNIX-SOCKET.If an optional argument UNIX-SOCKET is provided as a path for a
+If an optional argument UNIX-SOCKET is provided as a path for a
 Unix Domain Socket, a property named `org-web-track-unix-socket' will be added
 with its value. If this function is called interactively with a `C-u' prefix, a
 prompt to set UNIX-SOCKET will appear."
-  (interactive (list (read-string "URL: "
-                                  (org-entry-get (point) org-web-track-url))
+  (interactive (list (when (or (null (org-entry-get (point) org-web-track-url))
+                               (y-or-n-p (format "Are you sure of overwriting existing %s property?" org-web-track-url)))
+                       (read-string "URL: "))
                      (when (equal current-prefix-arg '(4))
                        (read-string "Unix Socket: "))))
-  (when (org-before-first-heading-p)
-    (org-insert-heading))
   (when (stringp url)
-    (org-entry-put (point) org-web-track-url url))
-  (when (stringp unix-socket)
-    (org-entry-put (point) org-web-track-unix-socket unix-socket))
-  (if (assoc-default url org-web-track-selectors-alist #'string-match)
-      (org-web-track-update-entry)
-    (message "No selector for the URL. Please set up `org-web-track-selectors-alist'.")))
+    (when (org-before-first-heading-p)
+      (org-insert-heading))
+    (org-entry-put (point) org-web-track-url url)
+    (when (stringp unix-socket)
+      (org-entry-put (point) org-web-track-unix-socket unix-socket))
+    (org-web-track-update-entry)))
 
 ;;;###autoload
 (defun org-web-track-update-entry (&optional marker)

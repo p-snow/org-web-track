@@ -58,5 +58,5 @@ endif
 init:
 	@./makem.sh $(DEBUG) $(VERBOSE) $(SANDBOX) $(INSTALL_DEPS) $(INSTALL_LINTERS)
 
-env:
-	guix shell -m manifest.scm
+test:
+	guix shell -m manifest.scm -- eldev test
