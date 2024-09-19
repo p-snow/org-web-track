@@ -167,28 +167,21 @@ or a function that returns the same data structure."
     ((and (pred listp) li) li)))
 
 ;;;###autoload
-(defun org-web-track-setup-entry (url &optional unix-socket)
+(defun org-web-track-setup-entry (url)
   "Initialize the entry at point by setting URL to `org-web-track-url'.
 
 If point is positioned before the first org heading, insert a new one above it
-initially.  After the URL has been set, try to retrieve a value if there is
-an appropriate selector in `org-web-track-selectors-alist'.
+initially.
 
-If an optional argument UNIX-SOCKET is provided as a path for a
-Unix Domain Socket, a property named `org-web-track-unix-socket' will be added
-with its value. If this function is called interactively with a `C-u' prefix, a
-prompt to set UNIX-SOCKET will appear."
+After the URL has been set, try to retrieve a valuees if there is
+an appropriate selector in `org-web-track-selectors-alist'."
   (interactive (list (when (or (null (org-entry-get (point) org-web-track-url))
                                (y-or-n-p (format "Are you sure of overwriting existing %s property?" org-web-track-url)))
-                       (read-string "URL: "))
-                     (when (equal current-prefix-arg '(4))
-                       (read-string "Unix Socket: "))))
+                       (read-string "URL: "))))
   (when (stringp url)
     (when (org-before-first-heading-p)
       (org-insert-heading))
     (org-entry-put (point) org-web-track-url url)
-    (when (stringp unix-socket)
-      (org-entry-put (point) org-web-track-unix-socket unix-socket))
     (org-web-track-update-entry)))
 
 ;;;###autoload
