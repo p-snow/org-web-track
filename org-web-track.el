@@ -62,10 +62,13 @@
 (put 'org-web-track-prev-value 'label "PREVIOUS")
 
 (defvar org-web-track-url "TRACK_URL"
-  "Property name for a URL to track.")
+  "Org property for a URL to access.")
+
+(defvar org-web-track-http-headers "TRACK_HTTP_HEADERS"
+  "Org property for headers in HTTP request.")
 
 (defvar org-web-track-unix-socket "TRACK_UNIX_SOCKET"
-  "Property name for a Unix Domain Socket path to connect.")
+  "Org property for a Unix Domain Socket path to connect.")
 
 (defvar org-web-track-updated "TRACK_LAST_UPDATED_TIME"
   "Property name for the date at which track value.")
@@ -149,6 +152,13 @@ or a function that returns the same data structure."
   :package-version '(org-web-track . "0.0.3")
   :type 'boolean)
 
+(defcustom org-web-track-default-http-headers
+  (list (string-trim (url-http-user-agent-string)))
+  "Default HTTP http-headers that are sent in every HTTP request session."
+  :group 'org-web-track
+  :package-version '(org-web-track . "0.1.0")
+  :type '(list (string :tag "Field name and value pair")))
+
 (defcustom org-web-track-item-column-width 0
   "0 means unspecified."
   :type 'natnum
@@ -185,6 +195,35 @@ an appropriate selector in `org-web-track-selectors-alist'."
     (org-web-track-update-entry)))
 
 ;;;###autoload
+(defun org-web-track-set-http-headers (epom http-headers)
+  "Set HTTP-HEADERS for the entry at EPOM.
+
+If called interactively, a minibuffer appears and the user is
+required to submit HTTP headers on it for the entry at point.
+
+The field name and value in HTTP headers must be delimtted by
+colon and multiple headers must be separated by a newline. When
+users write HTTP headers in the minibuffer, they should use `C-q'
+`C-j', instead of RET, for a newline. This is because pressing RET
+triggers an exit in the minibuffer."
+  (interactive (let* ((headers-text (org-entry-get-multivalued-property nil org-web-track-http-headers))
+                      (headers-text-anew (read-from-minibuffer "" headers-text)))
+                 (list nil headers-text-anew)))
+  (org-entry-put-multivalued-property
+   epom org-web-track-http-headers http-headers))
+
+;;;###autoload
+(defun org-web-track-set-unix-socket (epom unix-socket)
+  "Set UNIX-SOCKET for the entry at EPOM.
+
+If called interactively, a minibuffer appears and the user is
+required to input a Unix socket path for the entry at point."
+  (interactive (let* ((unix-sock (org-entry-get nil org-web-track-unix-socket))
+                      (unix-sock-anew (read-file-name "Unix socket: " nil nil nil unix-sock)))
+                 (list nil unix-sock-anew)))
+  (org-entry-put epom org-web-track-unix-socket unix-socket))
+
+;;;###autoload
 (defun org-web-track-update-entry (&optional marker)
   "Update the tracking item at MARKER.
 
@@ -201,6 +240,7 @@ the configuration in the variable `org-log-into-drawer'."
                              ((rx (let url url-re)) url))))
               (updates (funcall #'org-web-track-retrieve-values
                                 track-url
+                                (org-entry-get-multivalued-property marker org-web-track-http-headers)
                                 (org-entry-get marker org-web-track-unix-socket)))
               (current-time (format-time-string (org-time-stamp-format t t)))
               (org-log-note-headings (append '((update . "Update %-12s %t"))
@@ -239,8 +279,8 @@ Return a list of markers pointing to items where the value has been updated."
                              (format "%s={.+}" org-web-track-url)
                              (org-web-track-files))))
 
-(defun org-web-track-retrieve-values (url &optional unix-socket)
-  "Retrieve values by accessing the URL.
+(defun org-web-track-retrieve-values (url &optional http-headers unix-socket)
+  "Retrieve values by accessing URL, optionally using HTTP-HEADERS and UNIX-SOCKET.
 
 If an optional argument UNIX-SOCKET is provided as a path for a Unix Domain
 Socket to connect, the function will attempt to access the HTTP socket server
@@ -251,16 +291,20 @@ running on the local machine instead of the WWW server."
                                 (cond
                                  ((functionp car) (funcall car key))
                                  ((stringp car) (string-match-p car key))))))
-              (`(,request-backend . ,request-curl-options)
-               (if org-web-track-use-curl
-                   (cons 'curl `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
-                 (cons 'url-retrieve nil)))
+              (request-backend
+               (if org-web-track-use-curl 'curl 'url-retrieve))
               (values nil))
     (if selectors
         (request url
           :sync t
           :timeout org-web-track-update-timeout
           :unix-socket unix-socket
+          :headers
+          (mapcar (lambda (header)
+                    (split-string header (rx (seq ":" (0+ space)))))
+                  (append org-web-track-default-http-headers
+                          (when (stringp http-headers)
+                            (split-string http-headers (rx (seq (opt "\r") "\n")) t (rx space)))))
           :success
           (cl-function
            (lambda (&key response &allow-other-keys)
