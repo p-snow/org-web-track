@@ -3,9 +3,21 @@
 #+options: ':t toc:nil num:t
 #+startup: content
 
+* Version 0.1.0
+:PROPERTIES:
+:CREATED:  [2024-09-20 Fri 18:20]
+:END:
+
+- Allow users to specify HTTP headers for each individual tracking item
+  Users are expected to call =org-web-track-set-http-headers= in order to define
+  the HTTP headers to be sent for the tracking item at point. Additionally, the
+  variable =org-web-track-default-http-headers= has been added to define HTTP
+  headers for all HTTP sessions.
+
 * Version 0.0.3 on 2024-07-19
 :PROPERTIES:
 :CREATED:  [2024-07-11 Thu 14:43]
+:ID:       e5022a8f-6c34-45c5-8135-a7abf2350867
 :END:
 
 - Change the default backend for fetching data from =url-retrieve= to cURL
