@@ -237,6 +237,7 @@ the configuration in the variable `org-log-into-drawer'."
   (when-let* ((track-url (rx-let ((url-re (seq (regexp "https?://") (+ graph))))
                            (pcase (org-entry-get marker org-web-track-url)
                              ((rx "[[" (let link url-re) "][" (* print) "]]") link)
+                             ((rx "[[" (let link url-re) "]]") link)
                              ((rx (let url url-re)) url))))
               (updates (funcall #'org-web-track-retrieve-values
                                 track-url
