@@ -30,7 +30,7 @@
 ;; and leverage data such as scores, prices, or states from web pages and web
 ;; APIs.
 
-;; With org-web-track users can:
+;; With org-web-track, users can:
 ;; - Define a tracking item as an org-mode entry with a URL and selector,
 ;;   which indicate where to access and from which location to obtain the
 ;;   desired data, respectively.
