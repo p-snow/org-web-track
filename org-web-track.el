@@ -309,33 +309,12 @@ running on the local machine instead of the WWW server."
           :success
           (cl-function
            (lambda (&key response &allow-other-keys)
-             (let* ((content-type (request-response-header response "content-type"))
-                    (content-charset (if (string-match url-mime-content-type-charset-regexp
-                                                       content-type)
-                                         (match-string 1 content-type)
-                                       ""))
-                    (coding-sys (intern (downcase content-charset)))
-                    (content (request-response-data response)))
-               (setq values
-                     (ensure-list
-                      (apply
-                       (or filter 'list)
-                       (flatten-list
-                        (mapcar (lambda (selector)
-                                  (funcall #'org-web-track--select-value
-                                           (when (string-match (rx (or (seq "application/" (group-n 1 "json"))
-                                                                       (seq "text/" (group-n 1 "html"))
-                                                                       (seq "application/" (group-n 1 "xml"))
-                                                                       (seq "text/" (group-n 1 "plain"))))
-                                                               content-type)
-                                             (intern (match-string 1 content-type)))
-                                           (decode-coding-string content
-                                                                 (and (member coding-sys (coding-system-list))
-                                                                      coding-sys))
-                                           selector))
-                                (if (functionp selectors)
-                                    (list selectors)
-                                  (ensure-list selectors))))))))))
+             (setq values
+                   (org-web-track--apply-selectors
+                    (request-response-header response "content-type")
+                    (request-response-data response)
+                    selectors
+                    filter))))
           :error
           (cl-function
            (lambda (&key response &allow-other-keys)
@@ -360,34 +339,50 @@ running on the local machine instead of the WWW server."
      (insert ,content)
      ,@body))
 
-(defun org-web-track--select-value (subtype content selector)
-  "Return a value by applying SELECTOR to CONTENT, whose MIME subtype is SUBTYPE."
-  (let ((val (cond
-              ((stringp selector)
-               (org-web-track--with-content-buffer content
-                 (when (= 0 (shell-command-on-region (point-min) (point-max) selector t t))
-                   (buffer-substring-no-properties (point-min) (point-max)))))
-              ((functionp selector)
-               (funcall selector
-                        (pcase subtype
-                          ('json (json-parse-string content :object-type 'alist))
-                          ('html (org-web-track--with-content-buffer content
-                                   (libxml-parse-html-region)))
-                          ('xml (org-web-track--with-content-buffer content
-                                  (libxml-parse-xml-region)))
-                          ('plain content))))
-              ((and (vectorp selector)
-                    (eq subtype 'html))
-               (enlive-text (enlive-query (enlive-parse content)
-                                          selector))))))
-    (cl-labels ((validate-value (str)
-                  (if (stringp str)
-                      (if (string-blank-p str)
-                          " " (string-trim str))
-                    " ")))
-      (pcase val
-        ((and (pred listp) li) (mapcar (lambda (s) (validate-value s)) li))
-        ((and (pred stringp) st) (validate-value st))))))
+(defun org-web-track--apply-selectors (content-type content selectors filter)
+  "Apply SELECTORS and FILTER to CONTENT where HTTP Content-Type is CONTENT-TYPE."
+  (pcase-let* ((`(,mime-subtype . ,decoded-content)
+                (save-match-data
+                  (and (string-match
+                        (rx (seq (or (seq "application/" (group-n 1 (or "json" "xml")))
+                                     (seq "text/" (group-n 1 (or "html" "plain"))))
+                                 (opt (regexp url-mime-content-type-charset-regexp))))
+                        content-type)
+                       (cons (intern (match-string 1 content-type))
+                             (decode-coding-string content
+                                                   (car (member
+                                                         (intern (or (downcase (match-string 2 content-type)) "utf-8"))
+                                                         (coding-system-list)))))))))
+    (ensure-list
+     (apply (or filter 'list)
+            (flatten-tree
+             (mapcar
+              (lambda (selector)
+                (mapcar #'identity
+                        (ensure-list
+                         (pcase `(,mime-subtype . ,selector)
+                           (`(,_ . ,(and (pred stringp) selector-command))
+                            (org-web-track--with-content-buffer content
+                              (when (= 0 (shell-command-on-region (point-min) (point-max)
+                                                                  selector-command t t))
+                                (buffer-substring-no-properties (point-min) (point-max)))))
+                           (`(,subtype . ,(and (pred functionp) selector-func))
+                            (funcall selector-func
+                                     (cl-case subtype
+                                       (json (json-parse-string decoded-content :object-type 'alist))
+                                       (html (org-web-track--with-content-buffer decoded-content
+                                               (libxml-parse-html-region)))
+                                       (xml (org-web-track--with-content-buffer decoded-content
+                                              (libxml-parse-xml-region)))
+                                       (plain decoded-content))))
+                           (`(html . ,(and (pred vectorp) css-selector))
+                            (enlive-text (enlive-query (enlive-parse decoded-content)
+                                                       css-selector)))))))
+              ;; ensure that SELECTORS is a list, except in the case of lambda
+              (if (or (nlistp selectors)
+                      (eq (car selectors) 'lambda))
+                  (list selectors)
+                selectors)))))))
 
 ;;;###autoload
 (defun org-web-track-report ()
