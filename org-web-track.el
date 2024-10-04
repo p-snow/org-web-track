@@ -159,6 +159,15 @@ or a function that returns the same data structure."
   :package-version '(org-web-track . "0.1.0")
   :type '(list (string :tag "Field name and value pair")))
 
+(defcustom org-web-track-trim-values t
+  "Whether to trim retrieved values.
+
+Non-nil means to remove preceding and trailing whitespace
+characters from the values returned by each selector."
+  :group 'org-web-track
+  :package-version '(org-web-track . "0.1.0")
+  :type 'boolean)
+
 (defcustom org-web-track-item-column-width 0
   "0 means unspecified."
   :type 'natnum
@@ -358,7 +367,14 @@ running on the local machine instead of the WWW server."
             (flatten-tree
              (mapcar
               (lambda (selector)
-                (mapcar #'identity
+                (mapcar (lambda (val)
+                          (pcase val
+                            ((and (pred stringp) str)
+                             (if org-web-track-trim-values
+                                 (string-trim val) str))
+                            ((and (pred numberp) num)
+                             (number-to-string num))
+                            (_ "")))
                         (ensure-list
                          (pcase `(,mime-subtype . ,selector)
                            (`(,_ . ,(and (pred stringp) selector-command))

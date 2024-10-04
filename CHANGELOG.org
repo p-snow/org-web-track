@@ -13,6 +13,8 @@
   the HTTP headers to be sent for the tracking item at point. Additionally, the
   variable =org-web-track-default-http-headers= has been added to define HTTP
   headers for all HTTP sessions.
+- Add a custom variable =org-web-track-trim-values=
+  If non-nil, all values will be trimmed automatically.
 
 * Version 0.0.3 on 2024-07-19
 :PROPERTIES:
