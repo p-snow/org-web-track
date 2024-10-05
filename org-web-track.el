@@ -350,8 +350,9 @@ running on the local machine instead of the WWW server."
            (lambda (&key response &allow-other-keys)
              (when (eq (request-response-symbol-status response) 'timeout)
                (setq values nil))
-             (message "Network error occurred: %s"
-                      (request-response-error-thrown response))))
+             (message "HTTP error occurred: %s\n  URL: %s"
+                      (request-response-error-thrown response)
+                      url)))
           :complete
           (cl-function
            (lambda (&key data &allow-other-keys)
