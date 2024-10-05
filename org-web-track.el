@@ -360,7 +360,7 @@ running on the local machine instead of the WWW server."
                        (cons (intern (match-string 1 content-type))
                              (decode-coding-string content
                                                    (car (member
-                                                         (intern (or (downcase (match-string 2 content-type)) "utf-8"))
+                                                         (intern (downcase (or (match-string 2 content-type) "utf-8")))
                                                          (coding-system-list)))))))))
     (ensure-list
      (apply (or filter 'list)
