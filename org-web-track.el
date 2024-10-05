@@ -229,10 +229,11 @@ users write HTTP headers in the minibuffer, they should use `C-q'
 `C-j', instead of RET, for a newline. This is because pressing RET
 triggers an exit in the minibuffer."
   (interactive (let* ((headers-text (org-entry-get-multivalued-property nil org-web-track-http-headers))
-                      (headers-text-anew (read-from-minibuffer "" headers-text)))
+                      (headers-text-anew (read-from-minibuffer "" (string-join headers-text "\n"))))
                  (list nil headers-text-anew)))
-  (org-entry-put-multivalued-property
-   epom org-web-track-http-headers http-headers))
+  (apply #'org-entry-put-multivalued-property
+         epom org-web-track-http-headers
+         (split-string http-headers "[\n\r]+" t (rx space))))
 
 ;;;###autoload
 (defun org-web-track-set-unix-socket (epom unix-socket)
@@ -319,18 +320,22 @@ running on the local machine instead of the WWW server."
               (request-curl (if (stringp org-web-track-use-curl)
                                 org-web-track-use-curl
                               (default-value 'request-curl)))
+              (`(,request-curl-options . ,url-request-extra-headers)
+               (let ((header-list (append org-web-track-default-http-headers
+                                          (when (listp http-headers)
+                                            http-headers))))
+                 `(,(mapcar (lambda (header)
+                              (format "-H %s" header))
+                            header-list)
+                   . ,(mapcar (lambda (header)
+                                (split-string header (rx (seq ":" (0+ space)))))
+                              header-list))))
               (values nil))
     (if selectors
         (request url
           :sync t
           :timeout org-web-track-update-timeout
           :unix-socket unix-socket
-          :headers
-          (mapcar (lambda (header)
-                    (split-string header (rx (seq ":" (0+ space)))))
-                  (append org-web-track-default-http-headers
-                          (when (stringp http-headers)
-                            (split-string http-headers (rx (seq (opt "\r") "\n")) t (rx space)))))
           :success
           (cl-function
            (lambda (&key response &allow-other-keys)
