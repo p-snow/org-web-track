@@ -1,5 +1,5 @@
-This is org-web-track.info, produced by .texi2any-real version 7.1 from
-org-web-track.texi.
+This is org-web-track.info, produced by .texi2any-real version 7.1.1
+from org-web-track.texi.
 
 INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
@@ -197,13 +197,19 @@ Accessing Unix Domain Socket Server
 
 While org-web-track primarily focuses on the WWW server as the access
 target, users also have the option to connect to a Unix Domain Socket
-server that provides HTTP services on a local machine.  A simple example
-of a Unix Socket server implementation complying with the org-web-track
-framework can be found at
-<https://github.com/p-snow/socket-http-server>.
+server, which provides HTTP services mainly on a local machine.  A
+simple example of a Unix Socket server implementation complying with the
+org-web-track framework can be found at
+<https://github.com/p-snow/socket-http-server>.  Using this feature,
+non-HTTP services, such as Unix shell commands, can be effectively
+utilized within the org-web-track framework.
 
-   A user who wants to use a Unix Domain Socket server can achieve this
-by setting a path for the server using org-web-track-set-unix-socket.
+   Users who want to access the Unix Domain Socket server must set the
+socket's path by calling org-web-track-set-unix-socket at the desired
+tracking item.  When this feature is active, the value of the variable
+org-web-track-use-curl will not be respected.  The cURL program will
+implicitly be used as the fetching backend since url-retrieve cannot
+access the Unix Socket Server.
 
 
 File: org-web-track.info,  Node: Updating Values,  Next: Displaying Column View,  Prev: Defining Tracking Items,  Up: Basic Usage
@@ -340,22 +346,22 @@ GPLv3
 
 
 Tag Table:
-Node: Top232
-Node: Overview1073
-Node: Retrieving data1732
-Node: Installation2333
-Node: Basic Usage2767
-Node: Defining Tracking Items3105
-Node: Sending Additional HTTP Headers5019
-Node: Accessing Unix Domain Socket Server5818
-Node: Updating Values6536
-Node: Displaying Column View7328
-Node: Creating Report8152
-Node: Extended Examples8750
-Node: Automatic Bulk Updating and Email Notifications9037
-Node: Q&A10795
-Node: Network Certificate Issue10936
-Node: License11447
+Node: Top234
+Node: Overview1075
+Node: Retrieving data1734
+Node: Installation2335
+Node: Basic Usage2769
+Node: Defining Tracking Items3107
+Node: Sending Additional HTTP Headers5021
+Node: Accessing Unix Domain Socket Server5820
+Node: Updating Values6919
+Node: Displaying Column View7711
+Node: Creating Report8535
+Node: Extended Examples9133
+Node: Automatic Bulk Updating and Email Notifications9420
+Node: Q&A11178
+Node: Network Certificate Issue11319
+Node: License11830
 
 End Tag Table
 

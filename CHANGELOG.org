@@ -15,6 +15,8 @@
   headers for all HTTP sessions.
 - Add a custom variable =org-web-track-trim-values=
   If non-nil, all values will be trimmed automatically.
+- org-web-track-use-curl can now be a string
+  The existing variable, org-web-track-use-curl, can now be a string that specifies the path for the cURL executable.
 
 * Version 0.0.3 on 2024-07-19
 :PROPERTIES:

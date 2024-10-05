@@ -105,9 +105,9 @@ In =org-web-track=, users can specify HTTP headers in a couple of ways. First, t
 :ID:       c9e75ee1-7b69-44a5-8deb-40279a1d8843
 :END:
 
-While org-web-track primarily focuses on the WWW server as the access target, users also have the option to connect to a Unix Domain Socket server that provides HTTP services on a local machine. A simple example of a Unix Socket server implementation complying with the org-web-track framework can be found at https://github.com/p-snow/socket-http-server.
+While org-web-track primarily focuses on the WWW server as the access target, users also have the option to connect to a Unix Domain Socket server, which provides HTTP services mainly on a local machine. A simple example of a Unix Socket server implementation complying with the org-web-track framework can be found at https://github.com/p-snow/socket-http-server. Using this feature, non-HTTP services, such as Unix shell commands, can be effectively utilized within the org-web-track framework.
 
-A user who wants to use a Unix Domain Socket server can achieve this by setting a path for the server using org-web-track-set-unix-socket.
+Users who want to access the Unix Domain Socket server must set the socket's path by calling org-web-track-set-unix-socket at the desired tracking item. When this feature is active, the value of the variable org-web-track-use-curl will not be respected. The cURL program will implicitly be used as the fetching backend since url-retrieve cannot access the Unix Socket Server.
 
 ** Updating Values
 :PROPERTIES:

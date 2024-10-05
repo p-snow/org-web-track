@@ -147,7 +147,20 @@ or a function that returns the same data structure."
 
 (defcustom org-web-track-use-curl
   (not (null (executable-find "curl")))
-  "If non-nil, cURL is used as the fetching backend, instead of `url-retrieve'."
+  "Whether to use cURL as the fetching backend instead of `url-retrieve'.
+
+If non-nil, the cURL program at a searchable location will be
+used to fetch web content. Otherwise, the Elisp function
+`url-retrieve' will be used.
+
+This can be a string, which indicates the path for the cURL
+executable to be used.
+
+Note that even if this is nil, the cURL program will still be
+used when the tracking item prefers to access the Unix Socket
+Server (which means the org entry has
+`org-web-track-set-unix-socket' property), as `url-retrieve'
+cannot access the Unix Socket Server."
   :group 'org-web-track
   :package-version '(org-web-track . "0.0.3")
   :type 'boolean)
@@ -301,8 +314,11 @@ running on the local machine instead of the WWW server."
                                 (cond
                                  ((functionp car) (funcall car key))
                                  ((stringp car) (string-match-p car key))))))
-              (request-backend
-               (if org-web-track-use-curl 'curl 'url-retrieve))
+              (request-backend (if (or org-web-track-use-curl unix-socket)
+                                   'curl 'url-retrieve))
+              (request-curl (if (stringp org-web-track-use-curl)
+                                org-web-track-use-curl
+                              (default-value 'request-curl)))
               (values nil))
     (if selectors
         (request url
