@@ -90,8 +90,8 @@
 (defcustom org-web-track-selectors-alist nil
   "An alist of selectors used to obtain desired data.
 
-Each element in this alist must be a list that comprises URL-MATCH, SELECTORS
-and FILTER in that specific order.
+Each element in this alist must be a list that comprises URL-MATCH and SELECTORS
+ in that specific order.
 
 URL-MATCH:
 URL-MATCH for the car indicates for which URL this selector is responsible.
@@ -122,12 +122,7 @@ If the content type is JSON, it is a Lisp object obtained from
 
 If the selector is a string, it is expected to be a shell command that takes
 the response as stdin and returns the target data.
-Users can use parsing utility commands like pup or htmlq.
-
-FILTER:
-The optional third FILTER takes the multiple arguments that the selector returns
-for the target data and returns filtered results as either a string or a list of
-strings."
+Users can use parsing utility commands like pup or htmlq."
   :type '(alist :key-type (string :tag "Regexp")
                 :value-type
                 (choice (vector :tag "A CSS selector")
@@ -257,13 +252,25 @@ and `org-web-track-prev-value' if the values have been changed,
 then logs them using org's logging feature.  The placement of logs respects
 the configuration in the variable `org-log-into-drawer'."
   (interactive (list (point-marker)))
-  (when-let* ((track-url (rx-let ((url-re (seq (regexp "https?://") (+ graph))))
-                           (pcase (org-entry-get marker org-web-track-url)
-                             ((rx "[[" (let link url-re) "][" (* print) "]]") link)
-                             ((rx "[[" (let link url-re) "]]") link)
-                             ((rx (let url url-re)) url))))
+  (when-let* ((track-url (or (rx-let ((url-re (seq (regexp "https?://") (+ graph))))
+                               (pcase (org-entry-get marker org-web-track-url)
+                                 ((rx "[[" (let link url-re) "][" (* print) "]]") link)
+                                 ((rx "[[" (let link url-re) "]]") link)
+                                 ((rx (let url url-re)) url)))
+                             (user-error "No valid %s property" org-web-track-url)))
+              (selectors
+               (or (car (assoc-default track-url org-web-track-selectors-alist
+                                       (lambda (car key)
+                                         (pcase car
+                                           ((and (pred functionp) match-fun)
+                                            (funcall match-fun key))
+                                           ((and (pred stringp) match-str)
+                                            (string-match-p match-str key))))))
+                   (user-error "No selector found responsible for %s in org-web-track-selectors-alist"
+                               track-url)))
               (updates (funcall #'org-web-track-retrieve-values
                                 track-url
+                                selectors
                                 (org-entry-get-multivalued-property marker org-web-track-http-headers)
                                 (org-entry-get marker org-web-track-unix-socket)))
               (current-time (format-time-string (org-time-stamp-format t t)))
@@ -303,19 +310,13 @@ Return a list of markers pointing to items where the value has been updated."
                              (format "%s={.+}" org-web-track-url)
                              (org-web-track-files))))
 
-(defun org-web-track-retrieve-values (url &optional http-headers unix-socket)
-  "Retrieve values by accessing URL, optionally using HTTP-HEADERS and UNIX-SOCKET.
+(defun org-web-track-retrieve-values (url selectors &optional http-headers unix-socket)
+  "Retrieve values using URL, SELECTORS, HTTP-HEADERS and UNIX-SOCKET.
 
 If an optional argument UNIX-SOCKET is provided as a path for a Unix Domain
 Socket to connect, the function will attempt to access the HTTP socket server
 running on the local machine instead of the WWW server."
-  (pcase-let ((`(,selectors . (,filter))
-               (assoc-default url org-web-track-selectors-alist
-                              (lambda (car key)
-                                (cond
-                                 ((functionp car) (funcall car key))
-                                 ((stringp car) (string-match-p car key))))))
-              (request-backend (if (or org-web-track-use-curl unix-socket)
+  (pcase-let ((request-backend (if (or org-web-track-use-curl unix-socket)
                                    'curl 'url-retrieve))
               (request-curl (if (stringp org-web-track-use-curl)
                                 org-web-track-use-curl
@@ -331,35 +332,32 @@ running on the local machine instead of the WWW server."
                                 (split-string header (rx (seq ":" (0+ space)))))
                               header-list))))
               (values nil))
-    (if selectors
-        (request url
-          :sync t
-          :timeout org-web-track-update-timeout
-          :unix-socket unix-socket
-          :success
-          (cl-function
-           (lambda (&key response &allow-other-keys)
-             (setq values
-                   (org-web-track--apply-selectors
-                    (request-response-header response "content-type")
-                    (request-response-data response)
-                    selectors
-                    filter))))
-          :error
-          (cl-function
-           (lambda (&key response &allow-other-keys)
-             (when (eq (request-response-symbol-status response) 'timeout)
-               (setq values nil))
-             (message "HTTP error occurred: %s\n  URL: %s"
-                      (request-response-error-thrown response)
-                      url)))
-          :complete
-          (cl-function
-           (lambda (&key data &allow-other-keys)
-             (unless (seq-some 'stringp values)
-               (message "No value was retrieved"))
-             data)))
-      (user-error "No selector is available for %s" url))
+    (request url
+      :sync t
+      :timeout org-web-track-update-timeout
+      :unix-socket unix-socket
+      :success
+      (cl-function
+       (lambda (&key response &allow-other-keys)
+         (setq values
+               (org-web-track--apply-selectors
+                (request-response-header response "content-type")
+                (request-response-data response)
+                selectors))))
+      :error
+      (cl-function
+       (lambda (&key response &allow-other-keys)
+         (when (eq (request-response-symbol-status response) 'timeout)
+           (setq values nil))
+         (message "HTTP error occurred: %s\n  URL: %s"
+                  (request-response-error-thrown response)
+                  url)))
+      :complete
+      (cl-function
+       (lambda (&key data &allow-other-keys)
+         (unless (seq-some 'stringp values)
+           (message "No value was retrieved"))
+         data)))
     values))
 
 (defmacro org-web-track--with-content-buffer (content &rest body)
@@ -370,8 +368,8 @@ running on the local machine instead of the WWW server."
      (insert ,content)
      ,@body))
 
-(defun org-web-track--apply-selectors (content-type content selectors filter)
-  "Apply SELECTORS and FILTER to CONTENT where HTTP Content-Type is CONTENT-TYPE."
+(defun org-web-track--apply-selectors (content-type content selectors)
+  "Apply SELECTORS to CONTENT where HTTP Content-Type is CONTENT-TYPE."
   (pcase-let* ((`(,mime-subtype . ,decoded-content)
                 (save-match-data
                   (and (string-match
@@ -385,42 +383,41 @@ running on the local machine instead of the WWW server."
                                                          (intern (downcase (or (match-string 2 content-type) "utf-8")))
                                                          (coding-system-list)))))))))
     (ensure-list
-     (apply (or filter 'list)
-            (flatten-tree
-             (mapcar
-              (lambda (selector)
-                (mapcar (lambda (val)
-                          (pcase val
-                            ((and (pred stringp) str)
-                             (if org-web-track-trim-values
-                                 (string-trim val) str))
-                            ((and (pred numberp) num)
-                             (number-to-string num))
-                            (_ "")))
-                        (ensure-list
-                         (pcase `(,mime-subtype . ,selector)
-                           (`(,_ . ,(and (pred stringp) selector-command))
-                            (org-web-track--with-content-buffer content
-                              (when (= 0 (shell-command-on-region (point-min) (point-max)
-                                                                  selector-command t t))
-                                (buffer-substring-no-properties (point-min) (point-max)))))
-                           (`(,subtype . ,(and (pred functionp) selector-func))
-                            (funcall selector-func
-                                     (cl-case subtype
-                                       (json (json-parse-string decoded-content :object-type 'alist))
-                                       (html (org-web-track--with-content-buffer decoded-content
-                                               (libxml-parse-html-region)))
-                                       (xml (org-web-track--with-content-buffer decoded-content
-                                              (libxml-parse-xml-region)))
-                                       (plain decoded-content))))
-                           (`(html . ,(and (pred vectorp) css-selector))
-                            (enlive-text (enlive-query (enlive-parse decoded-content)
-                                                       css-selector)))))))
-              ;; ensure that SELECTORS is a list, except in the case of lambda
-              (if (or (nlistp selectors)
-                      (eq (car selectors) 'lambda))
-                  (list selectors)
-                selectors)))))))
+     (flatten-tree
+      (mapcar
+       (lambda (selector)
+         (mapcar (lambda (val)
+                   (pcase val
+                     ((and (pred stringp) str)
+                      (if org-web-track-trim-values
+                          (string-trim val) str))
+                     ((and (pred numberp) num)
+                      (number-to-string num))
+                     (_ "")))
+                 (ensure-list
+                  (pcase `(,mime-subtype . ,selector)
+                    (`(,_ . ,(and (pred stringp) selector-command))
+                     (org-web-track--with-content-buffer content
+                       (when (= 0 (shell-command-on-region (point-min) (point-max)
+                                                           selector-command t t))
+                         (buffer-substring-no-properties (point-min) (point-max)))))
+                    (`(,subtype . ,(and (pred functionp) selector-func))
+                     (funcall selector-func
+                              (cl-case subtype
+                                (json (json-parse-string decoded-content :object-type 'alist))
+                                (html (org-web-track--with-content-buffer decoded-content
+                                        (libxml-parse-html-region)))
+                                (xml (org-web-track--with-content-buffer decoded-content
+                                       (libxml-parse-xml-region)))
+                                (plain decoded-content))))
+                    (`(html . ,(and (pred vectorp) css-selector))
+                     (enlive-text (enlive-query (enlive-parse decoded-content)
+                                                css-selector)))))))
+       ;; ensure that SELECTORS is a list, except in the case of lambda
+       (if (or (nlistp selectors)
+               (eq (car selectors) 'lambda))
+           (list selectors)
+         selectors))))))
 
 ;;;###autoload
 (defun org-web-track-report ()
