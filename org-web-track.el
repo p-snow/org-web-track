@@ -259,13 +259,13 @@ the configuration in the variable `org-log-into-drawer'."
                                  ((rx (let url url-re)) url)))
                              (user-error "No valid %s property" org-web-track-url)))
               (selectors
-               (or (car (assoc-default track-url org-web-track-selectors-alist
-                                       (lambda (car key)
-                                         (pcase car
-                                           ((and (pred functionp) match-fun)
-                                            (funcall match-fun key))
-                                           ((and (pred stringp) match-str)
-                                            (string-match-p match-str key))))))
+               (or (assoc-default track-url org-web-track-selectors-alist
+                                  (lambda (car key)
+                                    (pcase car
+                                      ((and (pred functionp) match-fun)
+                                       (funcall match-fun key))
+                                      ((and (pred stringp) match-str)
+                                       (string-match-p match-str key)))))
                    (user-error "No selector found responsible for %s in org-web-track-selectors-alist"
                                track-url)))
               (updates (funcall #'org-web-track-retrieve-values
