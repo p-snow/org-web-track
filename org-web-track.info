@@ -144,10 +144,6 @@ the HTML response by searching in the tag with a class attribute of
 ‘org-web-track-selectors-alist’ for detailed guidance on how to define
 the SELECTOR.
 
-   Users can also use ‘org-web-track-test-selector’ function to create
-and/or verify a selector for the specific URL before configuring
-‘org-web-track-selectors-alist’.
-
    After appropriately defining ‘org-web-track-selectors-alist’, users
 can set up each specific tracking item by calling
 ‘org-web-track-setup-entry’ on the desired org entry or before the first
@@ -352,16 +348,16 @@ Node: Retrieving data1734
 Node: Installation2335
 Node: Basic Usage2769
 Node: Defining Tracking Items3107
-Node: Sending Additional HTTP Headers5021
-Node: Accessing Unix Domain Socket Server5820
-Node: Updating Values6919
-Node: Displaying Column View7711
-Node: Creating Report8535
-Node: Extended Examples9133
-Node: Automatic Bulk Updating and Email Notifications9420
-Node: Q&A11178
-Node: Network Certificate Issue11319
-Node: License11830
+Node: Sending Additional HTTP Headers4843
+Node: Accessing Unix Domain Socket Server5642
+Node: Updating Values6741
+Node: Displaying Column View7533
+Node: Creating Report8357
+Node: Extended Examples8955
+Node: Automatic Bulk Updating and Email Notifications9242
+Node: Q&A11000
+Node: Network Certificate Issue11141
+Node: License11652
 
 End Tag Table
 

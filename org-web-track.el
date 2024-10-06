@@ -584,20 +584,6 @@ This function is intended to be set for `org-agenda-cmp-user-defined'."
       (cond ((if ta (and tb (time-less-p ta tb)) tb) -1)
             ((if tb (and ta (time-less-p tb ta)) ta) +1)))))
 
-(defun org-web-track-test-selector (url selector &optional filter)
-  "Test SELECTOR and FILTER to determine if they are suitable for use with URL.
-
-This function return the values acquired by applying SELECTOR and optionally
-FILTER to the HTTP response for URL.
-Users can be aware whether SELECTOR and FILTER are usable for
-`org-web-track-selectors-alist'.
-SELECTOR can be either a single selector or a list of selectors,
-whereas FILTER must be singular."
-  (let ((org-web-track-selectors-alist
-         (append `((,(regexp-quote url) ,selector ,filter))
-                 org-web-track-selectors-alist)))
-    (org-web-track-retrieve-values url)))
-
 (provide 'org-web-track)
 
 ;;; org-web-track.el ends here

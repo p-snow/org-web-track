@@ -75,8 +75,6 @@ Before setting up each tracking item, users need to define =org-web-track-select
 
 The above code means that the target value for all product items, which have a URL containing "example.com/product", can be obtained from the HTML response by searching in the tag with a class attribute of "final-price". Refer to the description of =org-web-track-selectors-alist= for detailed guidance on how to define the SELECTOR.
 
-Users can also use =org-web-track-test-selector= function to create and/or verify a selector for the specific URL before configuring =org-web-track-selectors-alist=.
-
 After appropriately defining =org-web-track-selectors-alist=, users can set up each specific tracking item by calling =org-web-track-setup-entry= on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
 
 #+begin_src org
