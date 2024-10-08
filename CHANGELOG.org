@@ -8,6 +8,8 @@
 :CREATED:  [2024-09-20 Fri 18:20]
 :END:
 
+- BREAKING CHANGE: Filters in =org-web-track-selectors-alist= are no longer effective
+  The filters, which were originally designed to serve as data processors for the values obtained by the selector, are now deprecated. Please consider integrating this process directly into the selector itself. Consequently, the format of each element in =org-web-track-selectors-alist= must be either a cons cell (URL-MATCH . SELECTOR) or a list (URL-MATCH SELECTORS...).
 - Allow users to specify HTTP headers for each individual tracking item
   Users are expected to call =org-web-track-set-http-headers= in order to define
   the HTTP headers to be sent for the tracking item at point. Additionally, the
@@ -19,8 +21,6 @@
   The existing variable, org-web-track-use-curl, can now be a string that specifies the path for the cURL executable.
 - =org-web-track-test-selector= has been removed
   Consider using =org-web-track-retrieve-values= which has almost the same argument list, instead.
-- Filters in =org-web-track-selectors-alist= are no longer in effect
-  The filters, which were originally intended to serve as data processors against the values obtained by the selector, are now defunct. Please consider incorporating this process directly into the selector itself.
 
 * Version 0.0.3 on 2024-07-19
 :PROPERTIES:

@@ -88,41 +88,52 @@
   :link '(url-link "https://github.com/p-snow/org-web-track"))
 
 (defcustom org-web-track-selectors-alist nil
-  "An alist of selectors used to obtain desired data.
+  "An alist of URL-MATCH and SELECTOR(S).
 
-Each element in this alist must be a list that comprises URL-MATCH and SELECTORS
- in that specific order.
+URL-MATCH specifies the URL to which SELECTOR will be applied. SELECTOR is
+utilized to extract the desired value from the content of the URL. A single
+URL-MATCH links to one or more SELECTORS. Therefore, each element appears as
+\(URL-MATCH . SELECTOR) or (URL-MATCH SELECTORS...).
 
 URL-MATCH:
-URL-MATCH for the car indicates for which URL this selector is responsible.
-URL-MATCH can be either a string or a function.  The string is used as a regexp
-to determine URLs that match against it.  The function takes one argument,
-a URL candidate, and must return non-nil if this selector can deal with the URL.
+URL-MATCH must be either a string or a function. The string is used as a regexp
+to determine the URL that match against it. The function takes one argument, a
+URL candidate, and must return non-nil if this selector can deal with the URL.
 
-SELECTORS:
-SELECTORS for the second is either a single selector or a list of selectors,
-which are responsible for determining the target data.
+SELECTOR:
+SELECTOR must be either a vector, a function or a string.
 
-If the selector is a vector, it is supposed to represent a CSS selector that is
-used to determine the target data.  org-web-track delegates the determination
-procedure with CSS selector to the enlive package.
-See <https://github.com/zweifisch/enlive/blob/master/README.org> for information
-on how to write a CSS selector.
+If SELECTOR is a vector, it is assumed to represent a CSS selector that is used
+to determine the result value. The selection rules are as follows: the text of
+the selected tag will serve as the result value.
 
-If the selector is a function, it is expected to take a data object derived from
-the HTTP response and return the target data as a string or a list of strings.
-Note that each string represents one tracking unit.
-The data object varies depending on the content type of the response.
-If the content type is HTML, it is a parse tree obtained from
-`libxml-parse-html-region'.
-If the content type is XML, it is a parse tree obtained from
-`libxml-parse-xml-region'.
-If the content type is JSON, it is a Lisp object obtained from
-`json-parse-string'.
+  id              : [:main]
+  class           : [.content.home-page]
+  tagname         : [p.demo a]
+  direct children : [.article > p]
+  all nodes       : [:section > *]
 
-If the selector is a string, it is expected to be a shell command that takes
-the response as stdin and returns the target data.
-Users can use parsing utility commands like pup or htmlq."
+org-web-track delegates CSS selector procedure to enlive package. For more
+details, please visit the website.
+
+  enlive: https://github.com/zweifisch/enlive
+
+If SELECTOR is a function, it must accept a data object and return a value.
+
+The type of the data object depends on the MIME type of the HTTP response. If
+the MIME type is text/html, the data object is an HTML parse tree obtained from
+`libxml-parse-html-region'. Likewise, if the MIME type is application/xml, the
+data object will be an XML parse tree from `libxml-parse-xml-region', if the
+MIME type is application/json, an ELisp object from `json-parse-string' will be
+the data object, and if the MIME type is text/plain, the content itself will be
+the data object as a string.
+
+The return value of the function must be either a string, a number, or a list of
+those. If a list is returned, each element represents a tracking unit that will
+be compared over time.
+
+If SELECTOR is a string, it is assumed to be a shell command that should accept
+the HTTP response content as stdin and return a value as stdout."
   :type '(alist :key-type (string :tag "Regexp")
                 :value-type
                 (choice (vector :tag "A CSS selector")
@@ -259,13 +270,14 @@ the configuration in the variable `org-log-into-drawer'."
                                  ((rx (let url url-re)) url)))
                              (user-error "No valid %s property" org-web-track-url)))
               (selectors
-               (or (assoc-default track-url org-web-track-selectors-alist
-                                  (lambda (car key)
-                                    (pcase car
-                                      ((and (pred functionp) match-fun)
-                                       (funcall match-fun key))
-                                      ((and (pred stringp) match-str)
-                                       (string-match-p match-str key)))))
+               (or (ensure-list
+                    (assoc-default track-url org-web-track-selectors-alist
+                                   (lambda (car key)
+                                     (pcase car
+                                       ((and (pred functionp) match-fun)
+                                        (funcall match-fun key))
+                                       ((and (pred stringp) match-str)
+                                        (string-match-p match-str key))))))
                    (user-error "No selector found responsible for %s in org-web-track-selectors-alist"
                                track-url)))
               (updates (funcall #'org-web-track-retrieve-values
