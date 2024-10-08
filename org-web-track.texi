@@ -24,7 +24,7 @@
 
 @insertcopying
 
-@samp{org-web-track} provides an @samp{org-mode} framework that helps users track, manage, and leverage data such as scores, prices, or states from web pages and web APIs.
+@samp{org-web-track} provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API
 
 @end ifnottex
 
@@ -69,8 +69,6 @@ Q&A
 
 @node Overview
 @unnumbered Overview
-
-@samp{org-web-track} provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API
 
 With @samp{org-web-track}, users can:
 @itemize

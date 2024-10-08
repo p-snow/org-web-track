@@ -15,14 +15,12 @@
 #+html: <a href="https://melpa.org/#/org-web-track"><img alt="MELPA" src="https://melpa.org/packages/org-web-track-badge.svg"/></a>
 #+html: <a href="https://stable.melpa.org/#/org-web-track"><img alt="MELPA Stable" src="https://stable.melpa.org/packages/org-web-track-badge.svg"/></a>
 
-=org-web-track= provides an =org-mode= framework that helps users track, manage, and leverage data such as scores, prices, or states from web pages and web APIs.
+=org-web-track= provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API
 
 * Overview
 :PROPERTIES:
 :ID:       e0c25a0f-2b49-44b6-909f-002db1b39887
 :END:
-
-=org-web-track= provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API
 
 With =org-web-track=, users can:
 - Track targeted values that fluctuate over time.

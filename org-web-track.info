@@ -12,9 +12,8 @@ File: org-web-track.info,  Node: Top,  Next: Overview,  Up: (dir)
 org-web-track.el - Web data tracking framework in Org Mode
 **********************************************************
 
-‘org-web-track’ provides an ‘org-mode’ framework that helps users track,
-manage, and leverage data such as scores, prices, or states from web
-pages and web APIs.
+‘org-web-track’ provides an Org Mode framework that assists users in
+managing their values of interest on a website or via a Web API
 
 * Menu:
 
@@ -59,10 +58,7 @@ File: org-web-track.info,  Node: Overview,  Next: Installation,  Prev: Top,  Up:
 Overview
 ********
 
-‘org-web-track’ provides an Org Mode framework that assists users in
-managing their values of interest on a website or via a Web API
-
-   With ‘org-web-track’, users can:
+With ‘org-web-track’, users can:
    • Track targeted values that fluctuate over time.
    • Manage the history of values in Org Mode
    • Overview a series of tracking items displayed in a Org Column View
@@ -357,22 +353,22 @@ GPLv3
 
 Tag Table:
 Node: Top234
-Node: Overview1108
-Node: Retrieving data1668
-Node: Installation2269
-Node: Basic Usage2703
-Node: Defining Tracking Items3041
-Node: Sending Additional HTTP Headers4810
-Node: Dealing with Dinamic Website5602
-Node: Accessing Unix Domain Socket Server6259
-Node: Updating Values7355
-Node: Displaying Column View8147
-Node: Creating Report8971
-Node: Extended Examples9569
-Node: Automatic Bulk Updating and Email Notifications9856
-Node: Q&A11614
-Node: Network Certificate Issue11755
-Node: License12266
+Node: Overview1075
+Node: Retrieving data1494
+Node: Installation2095
+Node: Basic Usage2529
+Node: Defining Tracking Items2867
+Node: Sending Additional HTTP Headers4636
+Node: Dealing with Dinamic Website5428
+Node: Accessing Unix Domain Socket Server6085
+Node: Updating Values7181
+Node: Displaying Column View7973
+Node: Creating Report8797
+Node: Extended Examples9395
+Node: Automatic Bulk Updating and Email Notifications9682
+Node: Q&A11440
+Node: Network Certificate Issue11581
+Node: License12092
 
 End Tag Table
 
