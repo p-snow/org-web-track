@@ -41,6 +41,7 @@ Basic Usage
 Defining Tracking Items
 
 * Sending Additional HTTP Headers::
+* Dealing with Dinamic Website::
 * Accessing Unix Domain Socket Server::
 
 Extended Examples
@@ -165,10 +166,11 @@ settings.
 * Menu:
 
 * Sending Additional HTTP Headers::
+* Dealing with Dinamic Website::
 * Accessing Unix Domain Socket Server::
 
 
-File: org-web-track.info,  Node: Sending Additional HTTP Headers,  Next: Accessing Unix Domain Socket Server,  Up: Defining Tracking Items
+File: org-web-track.info,  Node: Sending Additional HTTP Headers,  Next: Dealing with Dinamic Website,  Up: Defining Tracking Items
 
 Sending Additional HTTP Headers
 -------------------------------
@@ -186,7 +188,21 @@ request.  Second, they can execute a command
 individual entries.
 
 
-File: org-web-track.info,  Node: Accessing Unix Domain Socket Server,  Prev: Sending Additional HTTP Headers,  Up: Defining Tracking Items
+File: org-web-track.info,  Node: Dealing with Dinamic Website,  Next: Accessing Unix Domain Socket Server,  Prev: Sending Additional HTTP Headers,  Up: Defining Tracking Items
+
+Dealing with Dinamic Website
+----------------------------
+
+The HTTP request backend of org-web-track, either cURL or url-retrieve,
+lacks the ability to read a dynamic website like a JS-rendered page.  To
+work around this issue, org-web-track employs a delegation mechanism for
+fetching content.  CONTENT-FETCHER in the
+org-web-track-content-fetcher-alist is used for this purpose.  Users are
+free to implement any procedure using libraries such as Selenium or
+WebDriver in it.
+
+
+File: org-web-track.info,  Node: Accessing Unix Domain Socket Server,  Prev: Dealing with Dinamic Website,  Up: Defining Tracking Items
 
 Accessing Unix Domain Socket Server
 -----------------------------------
@@ -343,21 +359,22 @@ GPLv3
 
 Tag Table:
 Node: Top234
-Node: Overview1075
-Node: Retrieving data1734
-Node: Installation2335
-Node: Basic Usage2769
-Node: Defining Tracking Items3107
-Node: Sending Additional HTTP Headers4843
-Node: Accessing Unix Domain Socket Server5642
-Node: Updating Values6741
-Node: Displaying Column View7533
-Node: Creating Report8357
-Node: Extended Examples8955
-Node: Automatic Bulk Updating and Email Notifications9242
-Node: Q&A11000
-Node: Network Certificate Issue11141
-Node: License11652
+Node: Overview1108
+Node: Retrieving data1767
+Node: Installation2368
+Node: Basic Usage2802
+Node: Defining Tracking Items3140
+Node: Sending Additional HTTP Headers4909
+Node: Dealing with Dinamic Website5701
+Node: Accessing Unix Domain Socket Server6358
+Node: Updating Values7454
+Node: Displaying Column View8246
+Node: Creating Report9070
+Node: Extended Examples9668
+Node: Automatic Bulk Updating and Email Notifications9955
+Node: Q&A11713
+Node: Network Certificate Issue11854
+Node: License12365
 
 End Tag Table
 

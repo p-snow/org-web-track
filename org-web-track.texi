@@ -53,6 +53,7 @@ Basic Usage
 Defining Tracking Items
 
 * Sending Additional HTTP Headers::
+* Dealing with Dinamic Website::
 * Accessing Unix Domain Socket Server::
 
 Extended Examples
@@ -153,6 +154,7 @@ After appropriately defining @samp{org-web-track-selectors-alist}, users can set
 
 @menu
 * Sending Additional HTTP Headers::
+* Dealing with Dinamic Website::
 * Accessing Unix Domain Socket Server::
 @end menu
 
@@ -162,6 +164,12 @@ After appropriately defining @samp{org-web-track-selectors-alist}, users can set
 In an HTTP request message, a client can include a set of information known as an HTTP header, each element presented in a key-value pair format. This allows the client to send metadata to the server for various purposes, such as authentication or user identification.
 
 In @samp{org-web-track}, users can specify HTTP headers in a couple of ways. First, they can set a variable @samp{org-web-track-default-http-headers} that is applied to every HTTP request. Second, they can execute a command @samp{org-web-track-set-http-headers} that sets specific HTTP headers for individual entries.
+
+@node Dealing with Dinamic Website
+@unnumberedsubsec Dealing with Dinamic Website
+
+@findex org-web-track-content-fetcher-alist
+The HTTP request backend of org-web-track, either cURL or url-retrieve, lacks the ability to read a dynamic website like a JS-rendered page. To work around this issue, org-web-track employs a delegation mechanism for fetching content. CONTENT-FETCHER in the org-web-track-content-fetcher-alist is used for this purpose. Users are free to implement any procedure using libraries such as Selenium or WebDriver in it.
 
 @node Accessing Unix Domain Socket Server
 @unnumberedsubsec Accessing Unix Domain Socket Server

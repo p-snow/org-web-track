@@ -141,6 +141,25 @@ the HTTP response content as stdin and return a value as stdout."
                         function))
   :group 'org-web-track)
 
+(defcustom org-web-track-content-fetcher-alist nil
+  "An alist of URL-MATCH and CONTENT-FETCHER.
+
+URL-MATCH specifies the URL for which CONTENT-FETCHER is
+responsible. If CONTENT-FETCHER is specified for the URL,
+org-web-track delegates the HTTP connection and content fetching
+to it and receives the content, which will then be applied to
+SELECTOR.
+
+The CONTENT-FETCHER must be a function that accepts a single
+argument, a URL, and returns the content as a string. If the
+content is anything other than an HTML, the return format has to
+be (MIME-TYPE . CONTENT), where the supported MIME-TYPE can be
+either \"text/html\" , \"application/xml\", \"application/json\"
+or \"text/plain\" as a string."
+  :type '(alist :key-type (string :tag "Regexp")
+                :value-type function)
+  :group 'org-web-track)
+
 (defcustom org-web-track-files nil
   "The files to be used in `org-web-track-agenda-columns'.
 
@@ -280,11 +299,26 @@ the configuration in the variable `org-log-into-drawer'."
                                         (string-match-p match-str key))))))
                    (user-error "No selector found responsible for %s in org-web-track-selectors-alist"
                                track-url)))
-              (updates (funcall #'org-web-track-retrieve-values
-                                track-url
-                                selectors
-                                (org-entry-get-multivalued-property marker org-web-track-http-headers)
-                                (org-entry-get marker org-web-track-unix-socket)))
+              (updates
+               (if-let* ((fetcher-cdr (assoc-default track-url org-web-track-content-fetcher-alist
+                                                     (lambda (car key) (string-match-p car key))))
+                         (the-fetcher (pcase fetcher-cdr
+                                        ((pred functionp) fetcher-cdr)
+                                        (`(,first . ,_)
+                                         (and (functionp first) first)))))
+                   (apply #'org-web-track--apply-selectors
+                          (let ((content (funcall the-fetcher track-url)))
+                            (pcase content
+                              ((and (pred stringp) str-cnt) `("text/html" ,str-cnt ,selectors))
+                              (`(,mtype . ,cnt)
+                               `(,mtype ,(or (and (listp cnt)
+                                                  (car cnt))
+                                             cnt)
+                                        ,selectors)))))
+                 (org-web-track-retrieve-values track-url
+                                                selectors
+                                                (org-entry-get-multivalued-property marker org-web-track-http-headers)
+                                                (org-entry-get marker org-web-track-unix-socket))))
               (current-time (format-time-string (org-time-stamp-format t t)))
               (org-log-note-headings (append '((update . "Update %-12s %t"))
                                              org-log-note-headings)))
