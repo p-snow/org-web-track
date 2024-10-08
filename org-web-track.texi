@@ -70,17 +70,18 @@ Q&A
 @node Overview
 @unnumbered Overview
 
-With @samp{org-web-track} users can:
+@samp{org-web-track} provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API
 
+With @samp{org-web-track}, users can:
 @itemize
 @item
-Define a tracking item as an @samp{org-mode} entry with a URL and selector, which indicate where to access and from which location to obtain the desired data, respectively.
+Track targeted values that fluctuate over time.
 @item
-Update tracking items at any time and check their value.
+Manage the history of values in Org Mode
 @item
-Manage a group of tracking items using the @samp{org-mode} column view capability.
+Overview a series of tracking items displayed in a Org Column View
 @item
-Take advantage of data logs, which are provided as an @samp{org-mode} table, to create a value transitive graph, for example.
+Take advantage of the history to plot a graph (for example)
 @end itemize
 
 @menu
