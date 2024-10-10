@@ -123,21 +123,33 @@ Defining Tracking Items
 =======================
 
 Before setting up each tracking item, users need to define
-‘org-web-track-selectors-alist’, which is a list of lists consisting of
-URL-MATCH and SELECTOR.  Each element is responsible for selecting data
-for the tracking item that has a URL matching against URL-MATCH and
-applying SELECTOR to the response.  An example of
-‘org-web-track-selectors-alist’ is as follows:
+‘org-web-track-selectors-alist’, whose element consists of two
+components: URL-MATCH and SELECTOR.  Each element is responsible for
+selecting a value for the specific URL that matches URL-MATCH, a regexp.
+The SELECTOR will then be applied to the content of the HTTP response at
+the URL to extract the resulting value.
 
-   (setq org-web-track-selectors-alist '(("example\\.com/product"
+   A single URL-MATCH is associated with one or more SELECTORS.
+Therefore, the element of the variable appears as either (URL-MATCH .
+SELECTOR) or (URL-MATCH SELECTORS...).  Below is a typical example of
+how to set the variable:
+
+   (setq org-web-track-selectors-alist '(("example\\.com/product" .
 [.final-price])))
 
-   The above code means that the target value for all product items,
-which have a URL containing "example.com/product", can be obtained from
-the HTML response by searching in the tag with a class attribute of
-"final-price".  Refer to the description of
-‘org-web-track-selectors-alist’ for detailed guidance on how to define
-the SELECTOR.
+   This code define how to extract product prices at the site
+"example.com".  In the site, the price posits in the tag whose class is
+"final-price".  This case, SELECTOR is CSS selector, one of available
+formats.  SELECTOR can be more than that.  Please refer to the
+documentation of ‘org-web-track-selectors-alist’ for more detail.
+
+   This code dictates how to extract product prices from the site
+"example.com".  On the site, the price is located within a tag whose
+class is "final-price".  In this case, SELECTOR is a vector, which
+signifies a CSS selector.  Besides this, SELECTOR can also be a function
+or a string.  This means it can represent an Elisp procedure or a shell
+command respectively.  For more details, please refer to the
+documentation of ‘org-web-track-selectors-alist’.
 
    After appropriately defining ‘org-web-track-selectors-alist’, users
 can set up each specific tracking item by calling
@@ -156,6 +168,10 @@ settings.
      :LOGBOOK:
      - Update "$30"       [2024-07-18 Thu 16:57]
      :END:
+
+   Some practical tracking item examples for specific real services are
+showcased on the Wiki page of the project website at
+<https://github.com/p-snow/org-web-track/wiki>.
 
 * Menu:
 
@@ -358,17 +374,17 @@ Node: Retrieving data1494
 Node: Installation2095
 Node: Basic Usage2529
 Node: Defining Tracking Items2867
-Node: Sending Additional HTTP Headers4636
-Node: Dealing with Dinamic Website5428
-Node: Accessing Unix Domain Socket Server6085
-Node: Updating Values7181
-Node: Displaying Column View7973
-Node: Creating Report8797
-Node: Extended Examples9395
-Node: Automatic Bulk Updating and Email Notifications9682
-Node: Q&A11440
-Node: Network Certificate Issue11581
-Node: License12092
+Node: Sending Additional HTTP Headers5505
+Node: Dealing with Dinamic Website6297
+Node: Accessing Unix Domain Socket Server6954
+Node: Updating Values8050
+Node: Displaying Column View8842
+Node: Creating Report9666
+Node: Extended Examples10264
+Node: Automatic Bulk Updating and Email Notifications10551
+Node: Q&A12309
+Node: Network Certificate Issue12450
+Node: License12961
 
 End Tag Table
 

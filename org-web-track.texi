@@ -130,13 +130,18 @@ In this section, the basic @samp{org-web-track} mechanism and fundamental comman
 @node Defining Tracking Items
 @unnumberedsec Defining Tracking Items
 
-Before setting up each tracking item, users need to define @samp{org-web-track-selectors-alist}, which is a list of lists consisting of URL-MATCH and SELECTOR@. Each element is responsible for selecting data for the tracking item that has a URL matching against URL-MATCH and applying SELECTOR to the response. An example of @samp{org-web-track-selectors-alist} is as follows:
-
 @findex org-web-track-selectors-alist
-(setq org-web-track-selectors-alist '(("example\\.com/product" [.final-price])))
+Before setting up each tracking item, users need to define @samp{org-web-track-selectors-alist}, whose element consists of two components: URL-MATCH and SELECTOR@. Each element is responsible for selecting a value for the specific URL that matches URL-MATCH, a regexp. The SELECTOR will then be applied to the content of the HTTP response at the URL to extract the resulting value.
 
-The above code means that the target value for all product items, which have a URL containing "example.com/product", can be obtained from the HTML response by searching in the tag with a class attribute of "final-price". Refer to the description of @samp{org-web-track-selectors-alist} for detailed guidance on how to define the SELECTOR@.
+A single URL-MATCH is associated with one or more SELECTORS@. Therefore, the element of the variable appears as either (URL-MATCH . SELECTOR) or (URL-MATCH SELECTORS@dots{}). Below is a typical example of how to set the variable:
 
+(setq org-web-track-selectors-alist '(("example\\.com/product" . [.final-price])))
+
+This code define how to extract product prices at the site "example.com". In the site, the price posits in the tag whose class is "final-price". This case, SELECTOR is CSS selector, one of available formats. SELECTOR can be more than that. Please refer to the documentation of @samp{org-web-track-selectors-alist} for more detail.
+
+This code dictates how to extract product prices from the site "example.com". On the site, the price is located within a tag whose class is "final-price". In this case, SELECTOR is a vector, which signifies a CSS selector. Besides this, SELECTOR can also be a function or a string. This means it can represent an Elisp procedure or a shell command respectively. For more details, please refer to the documentation of @samp{org-web-track-selectors-alist}.
+
+@findex org-web-track-setup-entry
 After appropriately defining @samp{org-web-track-selectors-alist}, users can set up each specific tracking item by calling @samp{org-web-track-setup-entry} on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
 
 @example
@@ -150,6 +155,8 @@ After appropriately defining @samp{org-web-track-selectors-alist}, users can set
 - Update "$30"       [2024-07-18 Thu 16:57]
 :END:
 @end example
+
+Some practical tracking item examples for specific real services are showcased on the Wiki page of the project website at @uref{https://github.com/p-snow/org-web-track/wiki}.
 
 @menu
 * Sending Additional HTTP Headers::
