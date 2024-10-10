@@ -419,13 +419,11 @@ running on the local machine instead of the WWW server."
                                  (opt (regexp url-mime-content-type-charset-regexp))))
                         content-type)
                        (cons (intern (match-string 1 content-type))
-                             (if-let ((coding-system (match-string 2 content-type)))
-                                 (decode-coding-string content
-                                                       (or (car (member
-                                                                 (intern (downcase coding-system))
-                                                                 (coding-system-list)))
-                                                           "utf-8"))
-                               content))))))
+                             (decode-coding-string content
+                                                   (princ (car (member
+                                                                (intern (downcase (or (match-string 2 content-type)
+                                                                                      "utf-8")))
+                                                                (coding-system-list))))))))))
     (ensure-list
      (flatten-tree
       (mapcar
