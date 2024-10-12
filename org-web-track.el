@@ -420,10 +420,10 @@ running on the local machine instead of the WWW server."
                         content-type)
                        (cons (intern (match-string 1 content-type))
                              (decode-coding-string content
-                                                   (princ (car (member
-                                                                (intern (downcase (or (match-string 2 content-type)
-                                                                                      "utf-8")))
-                                                                (coding-system-list))))))))))
+                                                   (car (member
+                                                         (intern (downcase (or (match-string 2 content-type)
+                                                                               "utf-8")))
+                                                         (coding-system-list)))))))))
     (ensure-list
      (flatten-tree
       (mapcar
