@@ -145,12 +145,24 @@ org-web-track delegates the HTTP connection and content fetching
 to it and receives the content, which will then be applied to
 SELECTOR.
 
-The CONTENT-FETCHER must be a function that accepts a single
-argument, a URL, and returns the content as a string. If the
-content is anything other than an HTML, the return format has to
-be (MIME-TYPE . CONTENT), where the supported MIME-TYPE can be
-either \"text/html\" , \"application/xml\", \"application/json\"
-or \"text/plain\" as a string."
+CONTENT-FETCHER must be either a function or a string.
+
+If it is a function, it must accept a single argument - a URL. It
+should then return the content obtained by accessing the URL,
+presented as a string. If the content is anything other than an
+HTML, the return format has to be (MIME-TYPE . CONTENT), where
+the supported MIME-TYPE can be either \"text/html\" ,
+\"application/xml\", \"application/json\" or \"text/plain\" as a
+string.
+
+If CONTENT-FETCHER is a string, it is interpreted as a shell
+command string. In the shell command, %s may appear, which is
+replaced with a URL at execution time. When %s is not present,
+the shell command can receive the URL via stdin.
+
+The shell command does not have a method to return the MIME type.
+Therefore, CONTENT-FETCHER, which returns a content other than
+HTML, needs to be implemented as a function."
   :type '(alist :key-type (string :tag "Regexp")
                 :value-type function)
   :group 'org-web-track)
@@ -297,19 +309,26 @@ the configuration in the variable `org-log-into-drawer'."
               (updates
                (if-let* ((fetcher-cdr (assoc-default track-url org-web-track-content-fetcher-alist
                                                      (lambda (car key) (string-match-p car key))))
-                         (the-fetcher (pcase fetcher-cdr
-                                        ((pred functionp) fetcher-cdr)
-                                        (`(,first . ,_)
-                                         (and (functionp first) first)))))
+                         (content (pcase fetcher-cdr
+                                    ((or (and (pred functionp)
+                                              fetcher-fun)
+                                         (and `(,(pred functionp) . ,_)
+                                              (let fetcher-fun (car fetcher-cdr))))
+                                     (funcall fetcher-fun track-url))
+                                    ((and (pred stringp) fetcher-cmd)
+                                     (with-temp-buffer
+                                       (when (= 0 (call-shell-region (insert track-url) nil
+                                                                     (format fetcher-cmd (shell-quote-argument track-url))
+                                                                     t t))
+                                         (buffer-substring-no-properties (point-min) (point-max))))))))
                    (apply #'org-web-track--apply-selectors
-                          (let ((content (funcall the-fetcher track-url)))
-                            (pcase content
-                              ((and (pred stringp) str-cnt) `("text/html" ,str-cnt ,selectors))
-                              (`(,mtype . ,cnt)
-                               `(,mtype ,(or (and (listp cnt)
-                                                  (car cnt))
-                                             cnt)
-                                        ,selectors)))))
+                          (pcase content
+                            ((and (pred stringp) str-cnt) `("text/html" ,str-cnt ,selectors))
+                            (`(,mtype . ,cnt)
+                             `(,mtype ,(or (and (listp cnt)
+                                                (car cnt))
+                                           cnt)
+                                      ,selectors))))
                  (org-web-track-retrieve-values track-url
                                                 selectors
                                                 (org-entry-get-multivalued-property marker org-web-track-http-headers)
