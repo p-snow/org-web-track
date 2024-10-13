@@ -213,6 +213,16 @@ characters from the values returned by each selector."
   :package-version '(org-web-track . "0.1.0")
   :type 'boolean)
 
+(defcustom org-web-track-report-date-format nil
+  "Date format in the report created by `org-web-track-report'.
+
+This format string will be assigned to `format-time-string'. If
+it is not a string, ISO 8601 date format (%+4Y-%m-%d) will be
+used."
+  :type 'string
+  :package-version '(org-web-track . "0.1.0")
+  :group 'org-web-track)
+
 (defcustom org-web-track-item-column-width 0
   "0 means unspecified."
   :type 'natnum
@@ -513,7 +523,10 @@ running on the local machine instead of the WWW server."
     (insert (format "|VALUE %d" (1+ index))))
   (insert "\n|--\n")
   (mapc (pcase-lambda (`(,time . ,values))
-          (insert (concat "| " (format-time-string "%F" time)))
+          (insert (concat "| " (format-time-string (or (and (stringp org-web-track-report-date-format)
+                                                            org-web-track-report-date-format)
+                                                       "%F")
+                                                   time)))
           (mapc (lambda (cell) (insert (concat "| " cell)))
                 values)
           (insert " |\n"))

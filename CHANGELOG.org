@@ -23,6 +23,8 @@
   The existing variable, org-web-track-use-curl, can now be a string that specifies the path for the cURL executable.
 - =org-web-track-test-selector= has been removed
   Consider using =org-web-track-retrieve-values= which has almost the same argument list, instead.
+- Date format in the report is now configurable
+  A new custom variable, =org-web-track-report-date-format=, has been introduced
 
 * Version 0.0.3 on 2024-07-19
 :PROPERTIES:
