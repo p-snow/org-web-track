@@ -10,21 +10,18 @@
 
 - BREAKING CHANGE: Filters in =org-web-track-selectors-alist= are no longer effective
   The filters, which were originally designed to serve as data processors for the values obtained by the selector, are now deprecated. Please consider integrating this process directly into the selector itself. Consequently, the format of each element in =org-web-track-selectors-alist= must be either a cons cell (URL-MATCH . SELECTOR) or a list (URL-MATCH SELECTORS...).
-- Enable users to manage dynamic websites
-  With the newly introduced Content-Fetcher mechanism, users can deal with dynamic sites such as JS-rendered pages as tracking targets.
-- Allow users to specify HTTP headers for each individual tracking item
-  Users are expected to call =org-web-track-set-http-headers= in order to define
-  the HTTP headers to be sent for the tracking item at point. Additionally, the
-  variable =org-web-track-default-http-headers= has been added to define HTTP
-  headers for all HTTP sessions.
-- Add a custom variable =org-web-track-trim-values=
-  If non-nil, all values will be trimmed automatically.
+- Dynamic websites have become supported
+  With the newly introduced CONTENT-FETCHER mechanism, users can deal with dynamic sites such as JS-rendered pages as tracking targets.
+- Tracking entries can now hold their own HTTP headers
+  Users are expected to call =org-web-track-set-http-headers= in order to define the HTTP headers to be sent for the tracking entry at point. Additionally, the variable =org-web-track-default-http-headers= has been added to define HTTP headers for all HTTP sessions.
+- The date format in the report have become configurable
+  A new custom variable, =org-web-track-report-date-format=, has been introduced
 - =org-web-track-use-curl= can now be a string
   The existing variable, org-web-track-use-curl, can now be a string that specifies the path for the cURL executable.
 - =org-web-track-test-selector= has been removed
   Consider using =org-web-track-retrieve-values= which has almost the same argument list, instead.
-- Date format in the report is now configurable
-  A new custom variable, =org-web-track-report-date-format=, has been introduced
+- Add a custom variable =org-web-track-trim-values=
+  If non-nil, all values will be trimmed automatically.
 
 * Version 0.0.3 on 2024-07-19
 :PROPERTIES:
