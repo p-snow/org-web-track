@@ -1,5 +1,5 @@
 #+begin_src text :exports none
 About:
 
-Org Mode framework for managing data from web pages and web APIs.
+A framework in Org Mode to assist users in retrieving and managing data from web pages and web APIs that fluctuate over time.
 #+end_src
