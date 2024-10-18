@@ -3,7 +3,7 @@
 #+options: ':t toc:nil num:t
 #+startup: content
 
-* Version 0.1.0
+* Version 0.1.0 on 2024-10-17
 :PROPERTIES:
 :CREATED:  [2024-09-20 Fri 18:20]
 :END:
