@@ -346,14 +346,13 @@ the configuration in the variable `org-log-into-drawer'."
               (current-time (format-time-string (org-time-stamp-format t t)))
               (org-log-note-headings (append '((update . "Update %-12s %t"))
                                              org-log-note-headings)))
-    (let ((values-in-existence
+    (let ((incumbent-values
            (or (org-entry-get-multivalued-property marker org-web-track-value)
-               (when-let ((single-val (org-entry-get marker org-web-track-value)))
-                 (make-list (length updates) single-val)))))
-      (when (or (null values-in-existence)
-                (and (not (equal updates values-in-existence))
+               (make-list (length updates) " "))))
+      (when (or (null incumbent-values)
+                (and (not (equal updates incumbent-values))
                      (apply #'org-entry-put-multivalued-property
-                            marker org-web-track-prev-value values-in-existence)))
+                            marker org-web-track-prev-value incumbent-values)))
         (apply #'org-entry-put-multivalued-property
                marker org-web-track-value updates)
         (org-with-point-at marker
@@ -458,13 +457,17 @@ running on the local machine instead of the WWW server."
       (mapcar
        (lambda (selector)
          (mapcar (lambda (val)
-                   (pcase val
-                     ((and (pred stringp) str)
-                      (if org-web-track-trim-values
-                          (string-trim val) str))
-                     ((and (pred numberp) num)
-                      (number-to-string num))
-                     (_ "")))
+                   (let ((crude-val (pcase val
+                                      ((and (pred stringp) str)
+                                       (if org-web-track-trim-values
+                                           (string-trim val) str))
+                                      ((and (pred numberp) num)
+                                       (number-to-string num))
+                                      (_ ""))))
+                     ;; Replace an empty string with a single space
+                     ;; since `org-entry-put-multivalued-property' does not accept an empty string
+                     (if (string-empty-p crude-val)
+                         " " crude-val)))
                  (ensure-list
                   (pcase `(,mime-subtype . ,selector)
                     (`(,_ . ,(and (pred stringp) selector-command))
