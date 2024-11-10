@@ -503,13 +503,14 @@ running on the local machine instead of the WWW server."
        (org-back-to-heading t)
        (org-fold-show-all)
        (let* ((case-fold-search t)
-              (subtree-end (save-excursion (org-end-of-subtree)))
+              (subtree-end (save-excursion
+                             (org-next-visible-heading 1)
+                             (point)))
               (re (concat (rx (or "Update" "Track") (+ space)
                               "\"" (group (+ not-newline)) "\""
                               (+ space) (opt "on") (* space))
-                          org-ts-regexp-inactive))
-              (end-mkr (set-marker (mark-marker) subtree-end)))
-         (while (re-search-forward re (marker-position end-mkr) t)
+                          org-ts-regexp-inactive)))
+         (while (re-search-forward re subtree-end t)
            (push `(,(encode-time (parse-time-string (match-string-no-properties 2)))
                    ,@(mapcar #'org-entry-restore-space (split-string (match-string-no-properties 1))))
                  table-rows)))))
