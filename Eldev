@@ -4,3 +4,5 @@
 (eldev-use-package-archive 'melpa)
 
 (eldev-use-plugin 'autoloads)
+
+(eldev-add-extra-dependencies 'test 'mocker)

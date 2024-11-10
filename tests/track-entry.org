@@ -1,0 +1,29 @@
+#+TITLE: Track Entries
+
+* URL property variants
+:PROPERTIES:
+:CREATED:  [2024-10-29 Tue 00:20]
+:END:
+** A-001: No TRACK_URL
+** A-002: Valid TRACK_URL
+:PROPERTIES:
+:TRACK_URL: https://www.example.com/product01
+:END:
+** A-003: Valid TRACK_URL, which follows the org-link format
+:PROPERTIES:
+:TRACK_URL: [[https://www.example.com/product01][Example Com]]
+:END:
+** A-004: Valid TRACK_URL and TRACK_UNIX_SOCKET
+:PROPERTIES:
+:TRACK_URL: https://www.example.com/product01
+:TRACK_UNIX_SOCKET: /tmp/test.sock
+:END:
+* Value property variants
+:PROPERTIES:
+:CREATED:  [2024-10-29 Tue 00:12]
+:END:
+** B-001: No current value
+:PROPERTIES:
+:TRACK_URL: https://www.example.com/product01
+:TRACK_PREVIOUS_VALUE: %20 %20
+:END:
