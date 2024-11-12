@@ -355,14 +355,15 @@ the configuration in the variable `org-log-into-drawer'."
                             marker org-web-track-prev-value incumbent-values)))
         (apply #'org-entry-put-multivalued-property
                marker org-web-track-value updates)
-        (org-with-point-at marker
-          (org-add-log-setup 'update
-                             ;; work around for stuck process in
-                             ;; string conversion at `org-store-log-note'
-                             (replace-regexp-in-string "\\(?:%20\\([DSTUdstu]\\)\\)" "_\\1"
-                                                       (org-entry-get (point) org-web-track-value))
-                             nil 'state current-time)
-          (run-hooks 'post-command-hook))
+        (let ((inhibit-message t)) ; inhibit "Note Stored" message
+          (org-with-point-at marker
+            (org-add-log-setup 'update
+                               ;; work around for stuck process in
+                               ;; string conversion at `org-store-log-note'
+                               (replace-regexp-in-string "\\(?:%20\\([DSTUdstu]\\)\\)" "_\\1"
+                                                         (org-entry-get (point) org-web-track-value))
+                               nil 'state current-time)
+            (run-hooks 'post-command-hook)))
         (org-entry-put marker org-web-track-updated current-time)
         (when (called-interactively-p 'any)
           (message "Updated: %s" (org-entry-get marker org-web-track-value)))
