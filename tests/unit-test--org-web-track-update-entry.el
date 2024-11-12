@@ -33,20 +33,55 @@
 (defvar test--org-web-track-selectors-alist
   '(("example.com" [.price])))
 
-(ert-deftest test--update-entry ()
-  "Test `org-web-track-setup-entry' with a URL that does not match any selector."
+(ert-deftest test--update-entry--track-url ()
+  "Test `org-web-track-update-entry' with various URL patterns."
   (with-temp-buffer
     (org-mode)
     (insert-file-contents (expand-file-name "tests/track-entry.org"
                                             (project-root (project-current))))
 
-    (let ((org-web-track-selectors-alist test--org-web-track-selectors-alist))
-      (re-search-forward "* B-001:")
+    (let* ((org-web-track-selectors-alist test--org-web-track-selectors-alist)
+           (current-time-sans-sec (decode-time (current-time))))
+      (setf (nth 0 current-time-sans-sec) 0)
+
       (mocker-let ((org-web-track-retrieve-values (url sel x y)
-                                                  ((:input '("https://www.example.com/product01" ([\.price]) nil nil) :output '("$20")))))
+                                                  ((:input '("https://www.example.com/product01" ([\.price]) nil nil) :output '("$3" "$30")))))
+        ;; test B-000
+        (re-search-forward "* B-000:")
+        (should-error (org-web-track-update-entry))
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-value)
+                       '("$2" "$20")))
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-prev-value)
+                       '("$1" "$10")))
+        ;; test B-001
+        (re-search-forward "* B-001:")
         (org-web-track-update-entry)
-        (should (string= (org-entry-get nil org-web-track-value)
-                         "$20"))))))
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-value)
+                       '("$3" "$30")))
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-prev-value)
+                       '("$2" "$20")))
+        (should (time-equal-p current-time-sans-sec
+                              (org-parse-time-string (org-entry-get nil org-web-track-updated))))
+        ;; test B-002
+        (re-search-forward "* B-002:")
+        (org-web-track-update-entry)
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-value)
+                       '("$3" "$30")))
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-prev-value)
+                       '("$2" "$20")))
+        (should (time-equal-p current-time-sans-sec
+                              (org-parse-time-string (org-entry-get nil org-web-track-updated))))
+        ;; test B-003
+        (re-search-forward "* B-003:")
+        (org-web-track-update-entry)
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-value)
+                       '("$3" "$30")))
+        (should (equal (org-entry-get-multivalued-property nil org-web-track-prev-value)
+                       '("$2" "$20")))
+        (should (time-equal-p current-time-sans-sec
+                              (org-parse-time-string (org-entry-get nil org-web-track-updated))))
+        )
+      )))
 
 (provide 'test-org-web-track)
 ;;; unit-test--update-entry.el ends here

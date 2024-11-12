@@ -18,12 +18,30 @@
 :TRACK_URL: https://www.example.com/product01
 :TRACK_UNIX_SOCKET: /tmp/test.sock
 :END:
-* Value property variants
+* URL property variants
 :PROPERTIES:
 :CREATED:  [2024-10-29 Tue 00:12]
 :END:
-** B-001: No current value
+** B-000: No URL
+:PROPERTIES:
+:TRACK_CURRENT_VALUE: $2 $20
+:TRACK_PREVIOUS_VALUE: $1 $10
+:END:
+** B-001: Plain String
 :PROPERTIES:
 :TRACK_URL: https://www.example.com/product01
-:TRACK_PREVIOUS_VALUE: %20 %20
+:TRACK_CURRENT_VALUE: $2 $20
+:TRACK_PREVIOUS_VALUE: $1 $10
+:END:
+** B-002: Org Link
+:PROPERTIES:
+:TRACK_URL: [[https://www.example.com/product01]]
+:TRACK_CURRENT_VALUE: $2 $20
+:TRACK_PREVIOUS_VALUE: $1 $10
+:END:
+** B-003: Org Link with Description
+:PROPERTIES:
+:TRACK_URL: [[https://www.example.com/product01][shopping site]]
+:TRACK_CURRENT_VALUE: $2 $20
+:TRACK_PREVIOUS_VALUE: $1 $10
 :END:
