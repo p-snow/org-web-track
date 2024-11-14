@@ -3,7 +3,7 @@
 ;; Author: p-snow <public@p-snow.org>
 ;; Maintainer: p-snow <public@p-snow.org>
 ;; Version: 0.1.1
-;; Package-Requires: ((emacs "29.1") (request "0.3.0") (enlive "0.0.1"))
+;; Package-Requires: ((emacs "29.1") (request "0.3.0") (enlive "0.0.1") (gnuplot "0.8.1"))
 ;; Homepage: https://github.com/p-snow/org-web-track
 ;; Keywords: org, agenda, web, hypermedia
 
@@ -41,6 +41,7 @@
 (require 'org)
 (require 'org-agenda)
 (require 'org-colview)
+(provide 'org-plot)
 (require 'url-http)
 (require 'request)
 (require 'enlive)
@@ -495,14 +496,18 @@ running on the local machine instead of the WWW server."
          selectors))))))
 
 ;;;###autoload
-(defun org-web-track-report ()
-  "Insert a table whose row represents value change at the time."
-  (interactive)
+(defun org-web-track-report (&optional plot)
+  "Insert an org table displaying values in chronological order and PLOT a graph.
+
+If called with the \\[universal-argument] prefix, the table will be inserted
+with #+PLOT special headers, which are recognizable for org-plot to create a
+graph. After that, the graph will be display automatically. Note that this
+feature requires the Gnuplot program and the Emacs gnuplot package."
+  (interactive "P")
   (let ((table-rows))
     (org-with-wide-buffer
      (org-save-outline-visibility t
        (org-back-to-heading t)
-       (org-fold-show-all)
        (let* ((case-fold-search t)
               (subtree-end (save-excursion
                              (org-next-visible-heading 1)
@@ -515,28 +520,49 @@ running on the local machine instead of the WWW server."
            (push `(,(encode-time (parse-time-string (match-string-no-properties 2)))
                    ,@(mapcar #'org-entry-restore-space (split-string (match-string-no-properties 1))))
                  table-rows)))))
-    (and table-rows
-         (org-web-track--insert-table-from table-rows))))
+    (when table-rows
+      (save-excursion
+        (let ((num-column (1- (apply 'max (mapcar #'length table-rows))))
+              (format-string (or org-web-track-report-date-format "%Y-%m-%d")))
+          (sort table-rows
+                (pcase-lambda (`(,time-a ,_) `(,time-b ,_))
+                  (time-less-p time-a time-b)))
+          (when (equal plot '(4))
+            (insert (format "#+PLOT: ind:1 deps:%s with:boxes type:2d\n"
+                            (cl-loop for i from 2 below (+ 2 num-column)
+                                     collect i)))
+            (insert "#+PLOT: set:\"xdata time\"\n")
+            (insert (format "#+PLOT: set:\"timefmt '%s'\"\n" format-string))
+            (insert (apply #'format "#+PLOT: set:\"xrange ['%s':'%s']\"\n"
+                           (mapcar (apply-partially
+                                    #'format-time-string format-string)
+                                   `(,(time-add (car (first table-rows)) (* -60 60 24))
+                                     ,(time-add (caar (last table-rows)) (* 60 60 24)))))))
+          (insert "|DATE")
+          (cl-dotimes (num num-column)
+            (insert (format "|VALUE %d" (1+ num))))
+          (insert "\n|--\n")
+          (mapc (pcase-lambda (`(,time . ,values))
+                  (insert (concat "| " (format-time-string format-string time)))
+                  (mapc (lambda (value)
+                          (insert (concat "| "
+                                          (if (equal plot '(4))
+                                              (org-web-track--extract-number value)
+                                            value))))
+                        values)
+                  (insert " |\n"))
+                table-rows)
+          (org-table-align)))
+      (when (and (equal plot '(4))
+                 (called-interactively-p 'any)
+                 (fboundp 'org-plot/gnuplot))
+        (org-plot/gnuplot)))))
 
-(defun org-web-track--insert-table-from (rows)
-  "Build a table row for `org-web-track-report' using ROWS."
-  (sort rows
-        (pcase-lambda (`(,time-a ,_) `(,time-b ,_))
-          (time-less-p time-a time-b)))
-  (insert "|DATE")
-  (cl-dotimes (index (1- (apply 'max (mapcar #'length rows))))
-    (insert (format "|VALUE %d" (1+ index))))
-  (insert "\n|--\n")
-  (mapc (pcase-lambda (`(,time . ,values))
-          (insert (concat "| " (format-time-string (or (and (stringp org-web-track-report-date-format)
-                                                            org-web-track-report-date-format)
-                                                       "%F")
-                                                   time)))
-          (mapc (lambda (cell) (insert (concat "| " cell)))
-                values)
-          (insert " |\n"))
-        rows)
-  (org-table-align))
+(defun org-web-track--extract-number (string)
+  "Extract an integer or floating-point number representation from STRING."
+  (let ((string-sans-comma (replace-regexp-in-string "\\([0-9]\\),\\([0-9]\\)" "\\1\\2" string)))
+    (and (string-match "[-+]?\\([0-9]*\\.[0-9]+\\|[0-9]+\\.?[0-9]*\\)" string-sans-comma)
+         (match-string 0 string-sans-comma))))
 
 (defun org-web-track-agenda-update ()
   "Update the tracking item in `org-agenda-mode'.
