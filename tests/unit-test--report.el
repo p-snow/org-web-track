@@ -75,4 +75,51 @@
                                                               (org-table-end)))
                             answer)))))
 
+(ert-deftest test--report--no-plot--custom-date-formate ()
+  "Test `org-web-track-report' non plotting scenario."
+  (with-temp-buffer
+    (org-mode)
+    (insert-file-contents (expand-file-name "tests/track-entry.org"
+                                            (project-root (project-current))))
+
+    (let ((org-web-track-report-date-format "%Y-%m-%d %H:%M")
+          (answer (concat "| DATE             | VALUE 1 | VALUE 2 |\n"
+                          "|------------------+---------+---------|\n"
+                          "| 2024-11-12 06:30 | ¥1,000  | ¥100    |\n"
+                          "| 2024-11-13 06:34 | ¥2,000  | ¥200    |\n"
+                          "| 2024-11-14 06:31 | ¥3,000  | ¥300    |\n")))
+      (re-search-forward "* L-000:")
+      (org-next-visible-heading 1)
+      (org-open-line 1)
+      (org-web-track-report)
+      (should (string-equal (buffer-substring-no-properties (point) (org-table-end))
+                            answer)))))
+
+(ert-deftest test--report--plot--custom-date-format ()
+  "Test `org-web-track-report' plotting scenario."
+  (with-temp-buffer
+    (org-mode)
+    (insert-file-contents (expand-file-name "tests/track-entry.org"
+                                            (project-root (project-current))))
+
+    (let ((org-web-track-report-date-format "%Y-%m-%d %H:%M")
+          (answer (concat "#+PLOT: ind:1 deps:(2 3) with:boxes type:2d\n"
+                          "#+PLOT: set:\"xdata time\"\n"
+                          "#+PLOT: set:\"timefmt '%Y-%m-%d %H:%M'\"\n"
+                          "#+PLOT: set:\"xrange ['2024-11-11':'2024-11-15']\"\n"
+                          "| DATE             | VALUE 1 | VALUE 2 |\n"
+                          "|------------------+---------+---------|\n"
+                          "| 2024-11-12 06:30 |    1000 |     100 |\n"
+                          "| 2024-11-13 06:34 |    2000 |     200 |\n"
+                          "| 2024-11-14 06:31 |    3000 |     300 |\n")))
+      (re-search-forward "* L-000:")
+      (org-next-visible-heading 1)
+      (org-open-line 1)
+      (org-web-track-report '(4))
+      (should (string-equal (buffer-substring-no-properties (point)
+                                                            (save-excursion
+                                                              (re-search-forward "|")
+                                                              (org-table-end)))
+                            answer)))))
+
 ;;; unit-test--report.el ends here

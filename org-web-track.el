@@ -535,7 +535,7 @@ feature requires the Gnuplot program and the Emacs gnuplot package."
             (insert (format "#+PLOT: set:\"timefmt '%s'\"\n" format-string))
             (insert (apply #'format "#+PLOT: set:\"xrange ['%s':'%s']\"\n"
                            (mapcar (apply-partially
-                                    #'format-time-string format-string)
+                                    #'format-time-string "%F")
                                    `(,(time-add (car (first table-rows)) (* -60 60 24))
                                      ,(time-add (caar (last table-rows)) (* 60 60 24)))))))
           (insert "|DATE")
