@@ -29,6 +29,7 @@ With =org-web-track=, users can:
 - Take advantage of the history to plot a graph (for example)
 
 #+html: <img src="https://github.com/p-snow/org-web-track/blob/main/images/org-web-track-columns_01.png?raw=true">
+#+html: <img src="https://github.com/p-snow/org-web-track/blob/main/images/org-web-track-graph_01.png?raw=true">
 
 ** Retrieving data
 :PROPERTIES:
