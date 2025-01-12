@@ -12,7 +12,7 @@ File: org-web-track.info,  Node: Top,  Next: Overview,  Up: (dir)
 org-web-track.el - Web data tracking framework in Org Mode
 **********************************************************
 
-‘org-web-track’ provides an Org Mode framework that assists users in
+Org Web Track provides an Org Mode framework that assists users in
 managing their values of interest on a website or via a Web API.
 
 * Menu:
@@ -69,7 +69,7 @@ File: org-web-track.info,  Node: Overview,  Next: Installation,  Prev: Top,  Up:
 1 Overview
 **********
 
-With ‘org-web-track’:
+Through the use of Org Web Track:
    • Any location in the web page or any piece in the web API response
      can be an item to track
    • Users can monitor changes for the item and manage them using the
@@ -471,27 +471,27 @@ File: org-web-track.info,  Node: Concept index,  Prev: Variable index,  Up: Indi
 
 Tag Table:
 Node: Top234
-Node: Overview1200
-Node: Retrieving data1779
-Node: Installation2388
-Node: MELPA package2709
-Node: Basic Usage3213
-Node: Defining Tracking Items3562
-Node: Sending Additional HTTP Headers6208
-Node: Dealing with Dinamic Website7005
-Node: Accessing Unix Domain Socket Server7674
-Node: Updating Values8794
-Node: Displaying Column View9594
-Node: Reporting and Creating Graph10433
-Node: Extended Examples11164
-Node: Automatic Bulk Updating and Email Notifications11455
-Node: Q&A13215
-Node: Network Certificate Issue13360
-Node: License13897
-Node: Indices14007
-Node: Function index14164
-Node: Variable index15454
-Node: Concept index16279
+Node: Overview1194
+Node: Retrieving data1781
+Node: Installation2390
+Node: MELPA package2711
+Node: Basic Usage3215
+Node: Defining Tracking Items3564
+Node: Sending Additional HTTP Headers6210
+Node: Dealing with Dinamic Website7007
+Node: Accessing Unix Domain Socket Server7676
+Node: Updating Values8796
+Node: Displaying Column View9596
+Node: Reporting and Creating Graph10435
+Node: Extended Examples11166
+Node: Automatic Bulk Updating and Email Notifications11457
+Node: Q&A13217
+Node: Network Certificate Issue13362
+Node: License13899
+Node: Indices14009
+Node: Function index14166
+Node: Variable index15456
+Node: Concept index16281
 
 End Tag Table
 

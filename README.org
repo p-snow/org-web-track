@@ -17,14 +17,14 @@
 #+html: <a href="https://melpa.org/#/org-web-track"><img alt="MELPA" src="https://melpa.org/packages/org-web-track-badge.svg"/></a>
 #+html: <a href="https://stable.melpa.org/#/org-web-track"><img alt="MELPA Stable" src="https://stable.melpa.org/packages/org-web-track-badge.svg"/></a>
 
-=org-web-track= provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API.
+Org Web Track provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API.
 
 * Overview
 :PROPERTIES:
 :ID:       e0c25a0f-2b49-44b6-909f-002db1b39887
 :END:
 
-With =org-web-track=:
+Through the use of Org Web Track:
 - Any location in the web page or any piece in the web API response can be an item to track
 - Users can monitor changes for the item and manage them using the facilities of Org mode
 - A set of items to track can be reviewed with their updated values in an Org column view
