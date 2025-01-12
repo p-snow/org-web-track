@@ -3,12 +3,12 @@
 #+options: ':t toc:nil num:t
 #+startup: content
 
-* Version 0.1.1
+* Version 0.1.1 on 2025-01-12
 :PROPERTIES:
 :CREATED:  [2024-11-14 Thu 20:47]
 :END:
 
-- =org-web-track-report= can now display a visual graph
+- ~org-web-track-report~ can now display a visual graph
   If the command called with C-u prefix, a 2D boxes graph will appear, powered by org-plot capability.
 
 * Version 0.1.0 on 2024-10-17
