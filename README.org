@@ -50,12 +50,31 @@ When users specify which snippet of data to track on web pages or web APIs, the 
 :ID:       28618b56-b746-47f3-a13f-38d7e59ab766
 :END:
 
-=org-web-track= can be installed directly from MELPA using =package-install=. Please note that the following packages are required.
+#+cindex: Installation instructions
 
 Requirements:
 - Emacs 29.1 or higher
 - [[https://github.com/tkf/emacs-request][request.el]] v0.3.2
 - [[https://github.com/zweifisch/enlive][enlive]] v0.0.1
+
+** MELPA package
+:PROPERTIES:
+:CREATED:  [2025-01-12 Sun 17:04]
+:END:
+
+Org Web Track can be installed from MELPA using package.el as follows:
+
+1. Add melpa to package-archives
+   #+begin_src emacs-lisp
+   (add-to-list 'package-archives
+                '("melpa" . "https://melpa.org/packages/")
+                t)
+   #+end_src
+2. Refresh package contents
+   : M-x package-refresh-contents
+3. Install Org Web Track
+   : M-x package-install
+   and select org-web-track
 
 * Basic Usage
 :PROPERTIES:
@@ -63,26 +82,26 @@ Requirements:
 :ID:       167f452d-19d4-4664-82a6-332e53eaf3b6
 :END:
 
-In this section, the basic =org-web-track= mechanism and fundamental command usage are described.
+In this section, the basic Org Web Track mechanism and fundamental command usage are described.
 
 ** Defining Tracking Items
 :PROPERTIES:
 :ID:       af45aae0-2011-4b22-b7dc-e156309964a7
 :END:
 
-#+findex: org-web-track-selectors-alist
-Before setting up each tracking item, users need to define =org-web-track-selectors-alist=, whose element consists of two components: URL-MATCH and SELECTOR. Each element is responsible for selecting a value for the specific URL that matches URL-MATCH, a regexp. The SELECTOR will then be applied to the content of the HTTP response at the URL to extract the resulting value.
+#+vindex: org-web-track-selectors-alist
+Before setting up each tracking item, users need to define ~org-web-track-selectors-alist~, whose element consists of two components: URL-MATCH and SELECTOR. Each element is responsible for selecting a value for the specific URL that matches URL-MATCH, a regexp. The SELECTOR will then be applied to the content of the HTTP response at the URL to extract the resulting value.
 
 A single URL-MATCH is associated with one or more SELECTORS. Therefore, the element of the variable appears as either (URL-MATCH . SELECTOR) or (URL-MATCH SELECTORS...). Below is a typical example of how to set the variable:
 
 (setq org-web-track-selectors-alist '(("example\\.com/product" . [.final-price])))
 
-This code define how to extract product prices at the site "example.com". In the site, the price posits in the tag whose class is "final-price". This case, SELECTOR is CSS selector, one of available formats. SELECTOR can be more than that. Please refer to the documentation of =org-web-track-selectors-alist= for more detail.
+This code define how to extract product prices at the site "example.com". In the site, the price posits in the tag whose class is "final-price". This case, SELECTOR is CSS selector, one of available formats. SELECTOR can be more than that. Please refer to the documentation of ~org-web-track-selectors-alist~ for more detail.
 
-This code dictates how to extract product prices from the site "example.com". On the site, the price is located within a tag whose class is "final-price". In this case, SELECTOR is a vector, which signifies a CSS selector. Besides this, SELECTOR can also be a function or a string. This means it can represent an Elisp procedure or a shell command respectively. For more details, please refer to the documentation of =org-web-track-selectors-alist=.
+This code dictates how to extract product prices from the site "example.com". On the site, the price is located within a tag whose class is "final-price". In this case, SELECTOR is a vector, which signifies a CSS selector. Besides this, SELECTOR can also be a function or a string. This means it can represent an Elisp procedure or a shell command respectively. For more details, please refer to the documentation of ~org-web-track-selectors-alist~.
 
 #+findex: org-web-track-setup-entry
-After appropriately defining =org-web-track-selectors-alist=, users can set up each specific tracking item by calling =org-web-track-setup-entry= on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
+After appropriately defining ~org-web-track-selectors-alist~, users can set up each specific tracking item by calling ~org-web-track-setup-entry~ on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
 
 #+begin_src org
 ,* Book ABC
@@ -103,9 +122,11 @@ Some practical tracking item examples for specific real services are showcased o
 :ID:       ac87e68c-81d2-48fc-ac66-effc6ef601da
 :END:
 
+#+vindex: org-web-track-default-http-headers
+#+findex: org-web-track-set-http-headers
 In an HTTP request message, a client can include a set of information known as an HTTP header, each element presented in a key-value pair format. This allows the client to send metadata to the server for various purposes, such as authentication or user identification.
 
-In =org-web-track=, users can specify HTTP headers in a couple of ways. First, they can set a variable =org-web-track-default-http-headers= that is applied to every HTTP request. Second, they can execute a command =org-web-track-set-http-headers= that sets specific HTTP headers for individual entries.
+In Org Web Track, users can specify HTTP headers in a couple of ways. First, they can set a variable ~org-web-track-default-http-headers~ that is applied to every HTTP request. Second, they can execute a command ~org-web-track-set-http-headers~ that sets specific HTTP headers for individual entries.
 
 *** Dealing with Dinamic Website
 :PROPERTIES:
@@ -113,7 +134,7 @@ In =org-web-track=, users can specify HTTP headers in a couple of ways. First, t
 :ID:       0e1cc98a-df9e-4989-8a86-669334869532
 :END:
 
-#+findex: org-web-track-content-fetcher-alist
+#+vindex: org-web-track-content-fetcher-alist
 The HTTP request backend of org-web-track, either cURL or url-retrieve, lacks the ability to read a dynamic website like a JS-rendered page. To work around this issue, org-web-track employs a delegation mechanism for fetching content. CONTENT-FETCHER in the org-web-track-content-fetcher-alist is used for this purpose. Users are free to implement any procedure using libraries such as Selenium or WebDriver in it.
 
 *** Accessing Unix Domain Socket Server
@@ -121,9 +142,11 @@ The HTTP request backend of org-web-track, either cURL or url-retrieve, lacks th
 :ID:       c9e75ee1-7b69-44a5-8deb-40279a1d8843
 :END:
 
+#+findex: org-web-track-set-unix-socket
+#+vindex: org-web-track-use-curl
 While org-web-track primarily focuses on the WWW server as the access target, users also have the option to connect to a Unix Domain Socket server, which provides HTTP services mainly on a local machine. A simple example of a Unix Socket server implementation complying with the org-web-track framework can be found at https://github.com/p-snow/socket-http-server. Using this feature, non-HTTP services, such as Unix shell commands, can be effectively utilized within the org-web-track framework.
 
-Users who want to access the Unix Domain Socket server must set the socket's path by calling org-web-track-set-unix-socket at the desired tracking item. When this feature is active, the value of the variable org-web-track-use-curl will not be respected. The cURL program will implicitly be used as the fetching backend since url-retrieve cannot access the Unix Socket Server.
+Users who want to access the Unix Domain Socket server must set the socket's path by calling ~org-web-track-set-unix-socket~ at the desired tracking item. When this feature is active, the value of the variable ~org-web-track-use-curl~ will not be respected. The cURL program will implicitly be used as the fetching backend since url-retrieve cannot access the Unix Socket Server.
 
 ** Updating Values
 :PROPERTIES:
@@ -131,27 +154,34 @@ Users who want to access the Unix Domain Socket server must set the socket's pat
 :ID:       b21beb3b-9959-4125-bac3-5208ab9ffb4a
 :END:
 
-The simplest way to update the value is to call =org-web-track-update-entry= on the desired org entry. If the retrieved value is updated compared to the last value, the updated value will be stored as the TRACK_CURRENT_VALUE org property; otherwise, the entry will remain unchanged.
+#+findex: org-web-track-update-entry
+#+findex: org-web-track-update-files
+#+vindex: org-web-track-files
+The simplest way to update the value is to call ~org-web-track-update-entry~ on the desired org entry. If the retrieved value is updated compared to the last value, the updated value will be stored as the TRACK_CURRENT_VALUE org property; otherwise, the entry will remain unchanged.
 
-Alternatively, bulk updating is supported. To enable bulk updating, users must first define =org-web-track-files=. This variable should be a list of files in which all tracking items, identified by having the TRACK_URL property, are selected for bulk updating. To perform bulk updating, call =org-web-track-update-files=.
+Alternatively, bulk updating is supported. To enable bulk updating, users must first define ~org-web-track-files~. This variable should be a list of files in which all tracking items, identified by having the TRACK_URL property, are selected for bulk updating. To perform bulk updating, call ~org-web-track-update-files~.
 
 ** Displaying Column View
 :PROPERTIES:
 :ID:       c0f5a319-d7b2-4792-8780-ca71cf934fd3
 :END:
 
-Column view in org-mode is a feature that displays properties in a table, providing a clear and comprehensive perspective. =org-web-track= offers a specialized column view where updated values are juxtaposed with their previous values for tracking items. To display the column view, call =org-web-track-columns= in org buffer.
+#+findex: org-web-track-columns
+Column view in org-mode is a feature that displays properties in a table, providing a clear and comprehensive perspective. org-web-track offers a specialized column view where updated values are juxtaposed with their previous values for tracking items. To display the column view, call ~org-web-track-columns~ in org buffer.
 
-If tracking items are scattered across many files, =org-web-track-agenda-columns= is useful as all tracking items in the aforementioned =org-web-track-files= are gathered in the agenda column view. Users can also update any item in the agenda column view by calling =org-web-track-agenda-update=.
+#+findex: org-web-track-agenda-columns
+#+findex: org-web-track-agenda-update
+If tracking items are scattered across many files, ~org-web-track-agenda-columns~ is useful as all tracking items in the aforementioned ~org-web-track-files~ are gathered in the agenda column view. Users can also update any item in the agenda column view by calling ~org-web-track-agenda-update~.
 
 ** Reporting and Creating Graph
 :PROPERTIES:
 :ID:       589566da-80c5-491f-b1e2-8cbaef8ab387
 :END:
 
-All updated values from the past are logged in the entry using the existing org log note feature. Log notes have a fixed format and are placed in a drawer only if =org-log-into-drawer= is non-nil.
+All updated values from the past are logged in the entry using the existing org log note feature. Log notes have a fixed format and are placed in a drawer only if ~org-log-into-drawer~ is non-nil.
 
-=org-web-track-report= creates an Org table where all log note values in the current Org entry are listed in ascending order of time, showing the transition of values over time. If called with C-u prefix, the command creates a visual graph using Gnuplot. Note that creating a graph requires the Gnuplot Emacs package and Gnuplot itself.
+#+findex: org-web-track-report
+~org-web-track-report~ creates an Org table where all log note values in the current Org entry are listed in ascending order of time, showing the transition of values over time. If called with C-u prefix, the command creates a visual graph using Gnuplot. Note that creating a graph requires the Gnuplot Emacs package and Gnuplot itself.
 
 * Extended Examples
 :PROPERTIES:
@@ -162,7 +192,7 @@ In this section, examples of how to utilize =org-web-track= extensively are show
 
 ** Automatic Bulk Updating and Email Notifications
 
-While automatic updating may be ideal in certain situations, =org-web-track= refrains from providing this feature directly to prevent potential data violations. However, users can enable automatic updating by calling =org-web-track-update-entry= or =org-web-track-update-files= from Elisp code. Below is an example implementation of automatic updates with email notifications scheduled for midnight.
+While automatic updating may be ideal in certain situations, Org Web Track refrains from providing this feature directly to prevent potential data violations. However, users can enable automatic updating by calling ~org-web-track-update-entry~ or ~org-web-track-update-files~ from Elisp code. Below is an example implementation of automatic updates with email notifications scheduled for midnight.
 
 #+begin_src emacs-lisp
 (defun exp/email-updated ()
@@ -194,8 +224,33 @@ and email me the updated list of items formatted as requested."
 
 ** Network Certificate Issue
 
-Non-interactive invocation for org-web-track-update-entry may fail due to an unverified network certificate. This issue can occur when accessing a website that offers an unverified certificate, and the variable network-security-level is set to 'medium' or higher. To address the issue, accept the certificate by calling the org-web-track-update-entry command interactively up-front.
+Non-interactive invocation for ~org-web-track-update-entry~ may fail due to an unverified network certificate. This issue can occur when accessing a website that offers an unverified certificate, and the variable ~network-security-level~ is set to 'medium' or higher. To address the issue, accept the certificate by calling the ~org-web-track-update-entry~ command interactively up-front.
 
 * License
 
 GPLv3
+
+* Indices
+:PROPERTIES:
+:CUSTOM_ID: h:dd530040-de9d-4f2b-8dfd-d8b8f14c058e
+:END:
+
+** Function index
+:PROPERTIES:
+:INDEX: fn
+:CUSTOM_ID: h:317b8c20-6dc1-4390-a20a-d01d75a48ccb
+:END:
+
+** Variable index
+:PROPERTIES:
+:INDEX: vr
+:END:
+
+** Concept index
+:PROPERTIES:
+:INDEX: cp
+:END:
+
+# Local Variables:
+# eval: (add-hook 'after-save-hook #' org-texinfo-export-to-info nil t)
+# End:

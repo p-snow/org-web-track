@@ -13,7 +13,7 @@ org-web-track.el - Web data tracking framework in Org Mode
 **********************************************************
 
 ‘org-web-track’ provides an Org Mode framework that assists users in
-managing their values of interest on a website or via a Web API
+managing their values of interest on a website or via a Web API.
 
 * Menu:
 
@@ -23,6 +23,7 @@ managing their values of interest on a website or via a Web API
 * Extended Examples::
 * Q&A::
 * License::
+* Indices::
 
 -- The Detailed Node Listing --
 
@@ -30,12 +31,16 @@ Overview
 
 * Retrieving data::
 
+Installation
+
+* MELPA package::
+
 Basic Usage
 
 * Defining Tracking Items::
 * Updating Values::
 * Displaying Column View::
-* Creating Report::
+* Reporting and Creating Graph::
 
 Defining Tracking Items
 
@@ -51,18 +56,28 @@ Q&A
 
 * Network Certificate Issue::
 
+Indices
+
+* Function index::
+* Variable index::
+* Concept index::
+
 
 
 File: org-web-track.info,  Node: Overview,  Next: Installation,  Prev: Top,  Up: Top
 
-Overview
-********
+1 Overview
+**********
 
-With ‘org-web-track’, users can:
-   • Track targeted values that fluctuate over time.
-   • Manage the history of values in Org Mode
-   • Overview a series of tracking items displayed in a Org Column View
-   • Take advantage of the history to plot a graph (for example)
+With ‘org-web-track’:
+   • Any location in the web page or any piece in the web API response
+     can be an item to track
+   • Users can monitor changes for the item and manage them using the
+     facilities of Org mode
+   • A set of items to track can be reviewed with their updated values
+     in an Org column view
+   • Users can extract an Org table displaying value changes and create
+     a visual graph using Gnuplot.
 
 * Menu:
 
@@ -71,8 +86,8 @@ With ‘org-web-track’, users can:
 
 File: org-web-track.info,  Node: Retrieving data,  Up: Overview
 
-Retrieving data
-===============
+1.1 Retrieving data
+===================
 
 When users specify which snippet of data to track on web pages or web
 APIs, the following methods are available:
@@ -88,25 +103,44 @@ APIs, the following methods are available:
 
 File: org-web-track.info,  Node: Installation,  Next: Basic Usage,  Prev: Overview,  Up: Top
 
-Installation
-************
+2 Installation
+**************
 
-‘org-web-track’ can be installed directly from MELPA using
-‘package-install’.  Please note that the following packages are
-required.
-
-   Requirements:
+Requirements:
    • Emacs 29.1 or higher
    • request.el (https://github.com/tkf/emacs-request) v0.3.2
    • enlive (https://github.com/zweifisch/enlive) v0.0.1
 
+* Menu:
+
+* MELPA package::
+
+
+File: org-web-track.info,  Node: MELPA package,  Up: Installation
+
+2.1 MELPA package
+=================
+
+Org Web Track can be installed from MELPA using package.el as follows:
+
+  1. Add melpa to package-archives
+          (add-to-list 'package-archives
+                       '("melpa" . "https://melpa.org/packages/")
+                       t)
+  2. Refresh package contents
+          M-x package-refresh-contents
+  3. Install Org Web Track
+          M-x package-install
+
+     and select org-web-track
+
 
 File: org-web-track.info,  Node: Basic Usage,  Next: Extended Examples,  Prev: Installation,  Up: Top
 
-Basic Usage
-***********
+3 Basic Usage
+*************
 
-In this section, the basic ‘org-web-track’ mechanism and fundamental
+In this section, the basic Org Web Track mechanism and fundamental
 command usage are described.
 
 * Menu:
@@ -114,13 +148,13 @@ command usage are described.
 * Defining Tracking Items::
 * Updating Values::
 * Displaying Column View::
-* Creating Report::
+* Reporting and Creating Graph::
 
 
 File: org-web-track.info,  Node: Defining Tracking Items,  Next: Updating Values,  Up: Basic Usage
 
-Defining Tracking Items
-=======================
+3.1 Defining Tracking Items
+===========================
 
 Before setting up each tracking item, users need to define
 ‘org-web-track-selectors-alist’, whose element consists of two
@@ -182,26 +216,25 @@ showcased on the Wiki page of the project website at
 
 File: org-web-track.info,  Node: Sending Additional HTTP Headers,  Next: Dealing with Dinamic Website,  Up: Defining Tracking Items
 
-Sending Additional HTTP Headers
--------------------------------
+3.1.1 Sending Additional HTTP Headers
+-------------------------------------
 
 In an HTTP request message, a client can include a set of information
 known as an HTTP header, each element presented in a key-value pair
 format.  This allows the client to send metadata to the server for
 various purposes, such as authentication or user identification.
 
-   In ‘org-web-track’, users can specify HTTP headers in a couple of
-ways.  First, they can set a variable
-‘org-web-track-default-http-headers’ that is applied to every HTTP
-request.  Second, they can execute a command
+   In Org Web Track, users can specify HTTP headers in a couple of ways.
+First, they can set a variable ‘org-web-track-default-http-headers’ that
+is applied to every HTTP request.  Second, they can execute a command
 ‘org-web-track-set-http-headers’ that sets specific HTTP headers for
 individual entries.
 
 
 File: org-web-track.info,  Node: Dealing with Dinamic Website,  Next: Accessing Unix Domain Socket Server,  Prev: Sending Additional HTTP Headers,  Up: Defining Tracking Items
 
-Dealing with Dinamic Website
-----------------------------
+3.1.2 Dealing with Dinamic Website
+----------------------------------
 
 The HTTP request backend of org-web-track, either cURL or url-retrieve,
 lacks the ability to read a dynamic website like a JS-rendered page.  To
@@ -214,8 +247,8 @@ WebDriver in it.
 
 File: org-web-track.info,  Node: Accessing Unix Domain Socket Server,  Prev: Dealing with Dinamic Website,  Up: Defining Tracking Items
 
-Accessing Unix Domain Socket Server
------------------------------------
+3.1.3 Accessing Unix Domain Socket Server
+-----------------------------------------
 
 While org-web-track primarily focuses on the WWW server as the access
 target, users also have the option to connect to a Unix Domain Socket
@@ -227,17 +260,17 @@ non-HTTP services, such as Unix shell commands, can be effectively
 utilized within the org-web-track framework.
 
    Users who want to access the Unix Domain Socket server must set the
-socket's path by calling org-web-track-set-unix-socket at the desired
+socket's path by calling ‘org-web-track-set-unix-socket’ at the desired
 tracking item.  When this feature is active, the value of the variable
-org-web-track-use-curl will not be respected.  The cURL program will
+‘org-web-track-use-curl’ will not be respected.  The cURL program will
 implicitly be used as the fetching backend since url-retrieve cannot
 access the Unix Socket Server.
 
 
 File: org-web-track.info,  Node: Updating Values,  Next: Displaying Column View,  Prev: Defining Tracking Items,  Up: Basic Usage
 
-Updating Values
-===============
+3.2 Updating Values
+===================
 
 The simplest way to update the value is to call
 ‘org-web-track-update-entry’ on the desired org entry.  If the retrieved
@@ -252,13 +285,13 @@ TRACK_URL property, are selected for bulk updating.  To perform bulk
 updating, call ‘org-web-track-update-files’.
 
 
-File: org-web-track.info,  Node: Displaying Column View,  Next: Creating Report,  Prev: Updating Values,  Up: Basic Usage
+File: org-web-track.info,  Node: Displaying Column View,  Next: Reporting and Creating Graph,  Prev: Updating Values,  Up: Basic Usage
 
-Displaying Column View
-======================
+3.3 Displaying Column View
+==========================
 
 Column view in org-mode is a feature that displays properties in a
-table, providing a clear and comprehensive perspective.  ‘org-web-track’
+table, providing a clear and comprehensive perspective.  org-web-track
 offers a specialized column view where updated values are juxtaposed
 with their previous values for tracking items.  To display the column
 view, call ‘org-web-track-columns’ in org buffer.
@@ -270,25 +303,26 @@ view.  Users can also update any item in the agenda column view by
 calling ‘org-web-track-agenda-update’.
 
 
-File: org-web-track.info,  Node: Creating Report,  Prev: Displaying Column View,  Up: Basic Usage
+File: org-web-track.info,  Node: Reporting and Creating Graph,  Prev: Displaying Column View,  Up: Basic Usage
 
-Creating Report
-===============
+3.4 Reporting and Creating Graph
+================================
 
 All updated values from the past are logged in the entry using the
 existing org log note feature.  Log notes have a fixed format and are
 placed in a drawer only if ‘org-log-into-drawer’ is non-nil.
 
-   ‘org-web-track-report’ creates a table where all log note values are
-listed in ascending order of time, showing the transition of values over
-time.  Users can utilize the table to create a graph using Gnuplot or
-analyze trends with Pandas, for example.
+   ‘org-web-track-report’ creates an Org table where all log note values
+in the current Org entry are listed in ascending order of time, showing
+the transition of values over time.  If called with C-u prefix, the
+command creates a visual graph using Gnuplot.  Note that creating a
+graph requires the Gnuplot Emacs package and Gnuplot itself.
 
 
 File: org-web-track.info,  Node: Extended Examples,  Next: Q&A,  Prev: Basic Usage,  Up: Top
 
-Extended Examples
-*****************
+4 Extended Examples
+*******************
 
 In this section, examples of how to utilize ‘org-web-track’ extensively
 are showcased.
@@ -300,13 +334,13 @@ are showcased.
 
 File: org-web-track.info,  Node: Automatic Bulk Updating and Email Notifications,  Up: Extended Examples
 
-Automatic Bulk Updating and Email Notifications
-===============================================
+4.1 Automatic Bulk Updating and Email Notifications
+===================================================
 
-While automatic updating may be ideal in certain situations,
-‘org-web-track’ refrains from providing this feature directly to prevent
-potential data violations.  However, users can enable automatic updating
-by calling ‘org-web-track-update-entry’ or ‘org-web-track-update-files’
+While automatic updating may be ideal in certain situations, Org Web
+Track refrains from providing this feature directly to prevent potential
+data violations.  However, users can enable automatic updating by
+calling ‘org-web-track-update-entry’ or ‘org-web-track-update-files’
 from Elisp code.  Below is an example implementation of automatic
 updates with email notifications scheduled for midnight.
 
@@ -337,8 +371,8 @@ updates with email notifications scheduled for midnight.
 
 File: org-web-track.info,  Node: Q&A,  Next: License,  Prev: Extended Examples,  Up: Top
 
-Q&A
-***
+5 Q&A
+*****
 
 * Menu:
 
@@ -347,44 +381,117 @@ Q&A
 
 File: org-web-track.info,  Node: Network Certificate Issue,  Up: Q&A
 
-Network Certificate Issue
-=========================
+5.1 Network Certificate Issue
+=============================
 
-Non-interactive invocation for org-web-track-update-entry may fail due
+Non-interactive invocation for ‘org-web-track-update-entry’ may fail due
 to an unverified network certificate.  This issue can occur when
 accessing a website that offers an unverified certificate, and the
-variable network-security-level is set to 'medium' or higher.  To
+variable ‘network-security-level’ is set to 'medium' or higher.  To
 address the issue, accept the certificate by calling the
-org-web-track-update-entry command interactively up-front.
+‘org-web-track-update-entry’ command interactively up-front.
 
 
-File: org-web-track.info,  Node: License,  Prev: Q&A,  Up: Top
+File: org-web-track.info,  Node: License,  Next: Indices,  Prev: Q&A,  Up: Top
 
-License
-*******
+6 License
+*********
 
 GPLv3
+
+
+File: org-web-track.info,  Node: Indices,  Prev: License,  Up: Top
+
+7 Indices
+*********
+
+* Menu:
+
+* Function index::
+* Variable index::
+* Concept index::
+
+
+File: org-web-track.info,  Node: Function index,  Next: Variable index,  Up: Indices
+
+7.1 Function index
+==================
+
+ [index ]
+* Menu:
+
+* org-web-track-agenda-columns:          Displaying Column View.
+                                                               (line 12)
+* org-web-track-agenda-update:           Displaying Column View.
+                                                               (line 12)
+* org-web-track-columns:                 Displaying Column View.
+                                                               (line  6)
+* org-web-track-report:                  Reporting and Creating Graph.
+                                                               (line 10)
+* org-web-track-set-http-headers:        Sending Additional HTTP Headers.
+                                                               (line  6)
+* org-web-track-set-unix-socket:         Accessing Unix Domain Socket Server.
+                                                               (line  6)
+* org-web-track-setup-entry:             Defining Tracking Items.
+                                                               (line 35)
+* org-web-track-update-entry:            Updating Values.      (line  6)
+* org-web-track-update-files:            Updating Values.      (line  6)
+
+
+File: org-web-track.info,  Node: Variable index,  Next: Concept index,  Prev: Function index,  Up: Indices
+
+7.2 Variable index
+==================
+
+ [index ]
+* Menu:
+
+* org-web-track-content-fetcher-alist:   Dealing with Dinamic Website.
+                                                                (line 6)
+* org-web-track-default-http-headers:    Sending Additional HTTP Headers.
+                                                                (line 6)
+* org-web-track-files:                   Updating Values.       (line 6)
+* org-web-track-selectors-alist:         Defining Tracking Items.
+                                                                (line 6)
+* org-web-track-use-curl:                Accessing Unix Domain Socket Server.
+                                                                (line 6)
+
+
+File: org-web-track.info,  Node: Concept index,  Prev: Variable index,  Up: Indices
+
+7.3 Concept index
+=================
+
+ [index ]
+* Menu:
+
+* Installation instructions:             Installation.          (line 6)
 
 
 
 Tag Table:
 Node: Top234
-Node: Overview1075
-Node: Retrieving data1494
-Node: Installation2095
-Node: Basic Usage2529
-Node: Defining Tracking Items2867
-Node: Sending Additional HTTP Headers5505
-Node: Dealing with Dinamic Website6297
-Node: Accessing Unix Domain Socket Server6954
-Node: Updating Values8050
-Node: Displaying Column View8842
-Node: Creating Report9666
-Node: Extended Examples10264
-Node: Automatic Bulk Updating and Email Notifications10551
-Node: Q&A12309
-Node: Network Certificate Issue12450
-Node: License12961
+Node: Overview1200
+Node: Retrieving data1779
+Node: Installation2388
+Node: MELPA package2709
+Node: Basic Usage3213
+Node: Defining Tracking Items3562
+Node: Sending Additional HTTP Headers6208
+Node: Dealing with Dinamic Website7005
+Node: Accessing Unix Domain Socket Server7674
+Node: Updating Values8794
+Node: Displaying Column View9594
+Node: Reporting and Creating Graph10433
+Node: Extended Examples11164
+Node: Automatic Bulk Updating and Email Notifications11455
+Node: Q&A13215
+Node: Network Certificate Issue13360
+Node: License13897
+Node: Indices14007
+Node: Function index14164
+Node: Variable index15454
+Node: Concept index16279
 
 End Tag Table
 

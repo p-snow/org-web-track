@@ -3,7 +3,7 @@
 @setfilename org-web-track.info
 @settitle org-web-track.el - Web data tracking framework in Org Mode
 @documentencoding UTF-8
-@documentlanguage ja
+@documentlanguage en
 @set MAINTAINERSITE @uref{https://github.com/p-snow/org-web-track,website}
 @set MAINTAINER p-snow
 @c %**end of header
@@ -24,7 +24,7 @@
 
 @insertcopying
 
-@samp{org-web-track} provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API
+@samp{org-web-track} provides an Org Mode framework that assists users in managing their values of interest on a website or via a Web API@.
 
 @end ifnottex
 
@@ -35,6 +35,7 @@
 * Extended Examples::
 * Q&A::
 * License::
+* Indices::
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -43,12 +44,16 @@ Overview
 
 * Retrieving data::
 
+Installation
+
+* MELPA package::
+
 Basic Usage
 
 * Defining Tracking Items::
 * Updating Values::
 * Displaying Column View::
-* Creating Report::
+* Reporting and Creating Graph::
 
 Defining Tracking Items
 
@@ -64,22 +69,28 @@ Q&A
 
 * Network Certificate Issue::
 
+Indices
+
+* Function index::
+* Variable index::
+* Concept index::
+
 @end detailmenu
 @end menu
 
 @node Overview
-@unnumbered Overview
+@chapter Overview
 
-With @samp{org-web-track}, users can:
+With @samp{org-web-track}:
 @itemize
 @item
-Track targeted values that fluctuate over time.
+Any location in the web page or any piece in the web API response can be an item to track
 @item
-Manage the history of values in Org Mode
+Users can monitor changes for the item and manage them using the facilities of Org mode
 @item
-Overview a series of tracking items displayed in a Org Column View
+A set of items to track can be reviewed with their updated values in an Org column view
 @item
-Take advantage of the history to plot a graph (for example)
+Users can extract an Org table displaying value changes and create a visual graph using Gnuplot.
 @end itemize
 
 @menu
@@ -87,7 +98,7 @@ Take advantage of the history to plot a graph (for example)
 @end menu
 
 @node Retrieving data
-@unnumberedsec Retrieving data
+@section Retrieving data
 
 When users specify which snippet of data to track on web pages or web APIs, the following methods are available:
 
@@ -101,9 +112,9 @@ Shell commands, which take a page source or an API response as STDIN and are exp
 @end itemize
 
 @node Installation
-@unnumbered Installation
+@chapter Installation
 
-@samp{org-web-track} can be installed directly from MELPA using @samp{package-install}. Please note that the following packages are required.
+@cindex Installation instructions
 
 Requirements:
 @itemize
@@ -115,34 +126,65 @@ Emacs 29.1 or higher
 @uref{https://github.com/zweifisch/enlive, enlive} v0.0.1
 @end itemize
 
-@node Basic Usage
-@unnumbered Basic Usage
+@menu
+* MELPA package::
+@end menu
 
-In this section, the basic @samp{org-web-track} mechanism and fundamental command usage are described.
+@node MELPA package
+@section MELPA package
+
+Org Web Track can be installed from MELPA using package.el as follows:
+
+@enumerate
+@item
+Add melpa to package-archives
+@lisp
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/")
+             t)
+@end lisp
+@item
+Refresh package contents
+@example
+M-x package-refresh-contents
+@end example
+@item
+Install Org Web Track
+@example
+M-x package-install
+@end example
+
+and select org-web-track
+@end enumerate
+
+@node Basic Usage
+@chapter Basic Usage
+
+In this section, the basic Org Web Track mechanism and fundamental command usage are described.
 
 @menu
 * Defining Tracking Items::
 * Updating Values::
 * Displaying Column View::
-* Creating Report::
+* Reporting and Creating Graph::
 @end menu
 
 @node Defining Tracking Items
-@unnumberedsec Defining Tracking Items
+@section Defining Tracking Items
 
-@findex org-web-track-selectors-alist
-Before setting up each tracking item, users need to define @samp{org-web-track-selectors-alist}, whose element consists of two components: URL-MATCH and SELECTOR@. Each element is responsible for selecting a value for the specific URL that matches URL-MATCH, a regexp. The SELECTOR will then be applied to the content of the HTTP response at the URL to extract the resulting value.
+@vindex org-web-track-selectors-alist
+Before setting up each tracking item, users need to define @code{org-web-track-selectors-alist}, whose element consists of two components: URL-MATCH and SELECTOR@. Each element is responsible for selecting a value for the specific URL that matches URL-MATCH, a regexp. The SELECTOR will then be applied to the content of the HTTP response at the URL to extract the resulting value.
 
 A single URL-MATCH is associated with one or more SELECTORS@. Therefore, the element of the variable appears as either (URL-MATCH . SELECTOR) or (URL-MATCH SELECTORS@dots{}). Below is a typical example of how to set the variable:
 
-(setq org-web-track-selectors-alist '(("example\\.com/product" . [.final-price])))
+(setq org-web-track-selectors-alist '((``example\\.com/product'' . [.final-price])))
 
-This code define how to extract product prices at the site "example.com". In the site, the price posits in the tag whose class is "final-price". This case, SELECTOR is CSS selector, one of available formats. SELECTOR can be more than that. Please refer to the documentation of @samp{org-web-track-selectors-alist} for more detail.
+This code define how to extract product prices at the site ``example.com''. In the site, the price posits in the tag whose class is ``final-price''. This case, SELECTOR is CSS selector, one of available formats. SELECTOR can be more than that. Please refer to the documentation of @code{org-web-track-selectors-alist} for more detail.
 
-This code dictates how to extract product prices from the site "example.com". On the site, the price is located within a tag whose class is "final-price". In this case, SELECTOR is a vector, which signifies a CSS selector. Besides this, SELECTOR can also be a function or a string. This means it can represent an Elisp procedure or a shell command respectively. For more details, please refer to the documentation of @samp{org-web-track-selectors-alist}.
+This code dictates how to extract product prices from the site ``example.com''. On the site, the price is located within a tag whose class is ``final-price''. In this case, SELECTOR is a vector, which signifies a CSS selector. Besides this, SELECTOR can also be a function or a string. This means it can represent an Elisp procedure or a shell command respectively. For more details, please refer to the documentation of @code{org-web-track-selectors-alist}.
 
 @findex org-web-track-setup-entry
-After appropriately defining @samp{org-web-track-selectors-alist}, users can set up each specific tracking item by calling @samp{org-web-track-setup-entry} on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
+After appropriately defining @code{org-web-track-selectors-alist}, users can set up each specific tracking item by calling @code{org-web-track-setup-entry} on the desired org entry or before the first heading to create a new one in the org buffer. Users will be prompted to input the tracking URL, and then the updated value will be retrieved, stored, and displayed in the echo area according to the aforementioned settings.
 
 @example
 * Book ABC
@@ -165,48 +207,59 @@ Some practical tracking item examples for specific real services are showcased o
 @end menu
 
 @node Sending Additional HTTP Headers
-@unnumberedsubsec Sending Additional HTTP Headers
+@subsection Sending Additional HTTP Headers
 
+@vindex org-web-track-default-http-headers
+@findex org-web-track-set-http-headers
 In an HTTP request message, a client can include a set of information known as an HTTP header, each element presented in a key-value pair format. This allows the client to send metadata to the server for various purposes, such as authentication or user identification.
 
-In @samp{org-web-track}, users can specify HTTP headers in a couple of ways. First, they can set a variable @samp{org-web-track-default-http-headers} that is applied to every HTTP request. Second, they can execute a command @samp{org-web-track-set-http-headers} that sets specific HTTP headers for individual entries.
+In Org Web Track, users can specify HTTP headers in a couple of ways. First, they can set a variable @code{org-web-track-default-http-headers} that is applied to every HTTP request. Second, they can execute a command @code{org-web-track-set-http-headers} that sets specific HTTP headers for individual entries.
 
 @node Dealing with Dinamic Website
-@unnumberedsubsec Dealing with Dinamic Website
+@subsection Dealing with Dinamic Website
 
-@findex org-web-track-content-fetcher-alist
+@vindex org-web-track-content-fetcher-alist
 The HTTP request backend of org-web-track, either cURL or url-retrieve, lacks the ability to read a dynamic website like a JS-rendered page. To work around this issue, org-web-track employs a delegation mechanism for fetching content. CONTENT-FETCHER in the org-web-track-content-fetcher-alist is used for this purpose. Users are free to implement any procedure using libraries such as Selenium or WebDriver in it.
 
 @node Accessing Unix Domain Socket Server
-@unnumberedsubsec Accessing Unix Domain Socket Server
+@subsection Accessing Unix Domain Socket Server
 
+@findex org-web-track-set-unix-socket
+@vindex org-web-track-use-curl
 While org-web-track primarily focuses on the WWW server as the access target, users also have the option to connect to a Unix Domain Socket server, which provides HTTP services mainly on a local machine. A simple example of a Unix Socket server implementation complying with the org-web-track framework can be found at @uref{https://github.com/p-snow/socket-http-server}. Using this feature, non-HTTP services, such as Unix shell commands, can be effectively utilized within the org-web-track framework.
 
-Users who want to access the Unix Domain Socket server must set the socket's path by calling org-web-track-set-unix-socket at the desired tracking item. When this feature is active, the value of the variable org-web-track-use-curl will not be respected. The cURL program will implicitly be used as the fetching backend since url-retrieve cannot access the Unix Socket Server.
+Users who want to access the Unix Domain Socket server must set the socket's path by calling @code{org-web-track-set-unix-socket} at the desired tracking item. When this feature is active, the value of the variable @code{org-web-track-use-curl} will not be respected. The cURL program will implicitly be used as the fetching backend since url-retrieve cannot access the Unix Socket Server.
 
 @node Updating Values
-@unnumberedsec Updating Values
+@section Updating Values
 
-The simplest way to update the value is to call @samp{org-web-track-update-entry} on the desired org entry. If the retrieved value is updated compared to the last value, the updated value will be stored as the TRACK_CURRENT_VALUE org property; otherwise, the entry will remain unchanged.
+@findex org-web-track-update-entry
+@findex org-web-track-update-files
+@vindex org-web-track-files
+The simplest way to update the value is to call @code{org-web-track-update-entry} on the desired org entry. If the retrieved value is updated compared to the last value, the updated value will be stored as the TRACK_CURRENT_VALUE org property; otherwise, the entry will remain unchanged.
 
-Alternatively, bulk updating is supported. To enable bulk updating, users must first define @samp{org-web-track-files}. This variable should be a list of files in which all tracking items, identified by having the TRACK_URL property, are selected for bulk updating. To perform bulk updating, call @samp{org-web-track-update-files}.
+Alternatively, bulk updating is supported. To enable bulk updating, users must first define @code{org-web-track-files}. This variable should be a list of files in which all tracking items, identified by having the TRACK_URL property, are selected for bulk updating. To perform bulk updating, call @code{org-web-track-update-files}.
 
 @node Displaying Column View
-@unnumberedsec Displaying Column View
+@section Displaying Column View
 
-Column view in org-mode is a feature that displays properties in a table, providing a clear and comprehensive perspective. @samp{org-web-track} offers a specialized column view where updated values are juxtaposed with their previous values for tracking items. To display the column view, call @samp{org-web-track-columns} in org buffer.
+@findex org-web-track-columns
+Column view in org-mode is a feature that displays properties in a table, providing a clear and comprehensive perspective. org-web-track offers a specialized column view where updated values are juxtaposed with their previous values for tracking items. To display the column view, call @code{org-web-track-columns} in org buffer.
 
-If tracking items are scattered across many files, @samp{org-web-track-agenda-columns} is useful as all tracking items in the aforementioned @samp{org-web-track-files} are gathered in the agenda column view. Users can also update any item in the agenda column view by calling @samp{org-web-track-agenda-update}.
+@findex org-web-track-agenda-columns
+@findex org-web-track-agenda-update
+If tracking items are scattered across many files, @code{org-web-track-agenda-columns} is useful as all tracking items in the aforementioned @code{org-web-track-files} are gathered in the agenda column view. Users can also update any item in the agenda column view by calling @code{org-web-track-agenda-update}.
 
-@node Creating Report
-@unnumberedsec Creating Report
+@node Reporting and Creating Graph
+@section Reporting and Creating Graph
 
-All updated values from the past are logged in the entry using the existing org log note feature. Log notes have a fixed format and are placed in a drawer only if @samp{org-log-into-drawer} is non-nil.
+All updated values from the past are logged in the entry using the existing org log note feature. Log notes have a fixed format and are placed in a drawer only if @code{org-log-into-drawer} is non-nil.
 
-@samp{org-web-track-report} creates a table where all log note values are listed in ascending order of time, showing the transition of values over time. Users can utilize the table to create a graph using Gnuplot or analyze trends with Pandas, for example.
+@findex org-web-track-report
+@code{org-web-track-report} creates an Org table where all log note values in the current Org entry are listed in ascending order of time, showing the transition of values over time. If called with C-u prefix, the command creates a visual graph using Gnuplot. Note that creating a graph requires the Gnuplot Emacs package and Gnuplot itself.
 
 @node Extended Examples
-@unnumbered Extended Examples
+@chapter Extended Examples
 
 In this section, examples of how to utilize @samp{org-web-track} extensively are showcased.
 
@@ -215,9 +268,9 @@ In this section, examples of how to utilize @samp{org-web-track} extensively are
 @end menu
 
 @node Automatic Bulk Updating and Email Notifications
-@unnumberedsec Automatic Bulk Updating and Email Notifications
+@section Automatic Bulk Updating and Email Notifications
 
-While automatic updating may be ideal in certain situations, @samp{org-web-track} refrains from providing this feature directly to prevent potential data violations. However, users can enable automatic updating by calling @samp{org-web-track-update-entry} or @samp{org-web-track-update-files} from Elisp code. Below is an example implementation of automatic updates with email notifications scheduled for midnight.
+While automatic updating may be ideal in certain situations, Org Web Track refrains from providing this feature directly to prevent potential data violations. However, users can enable automatic updating by calling @code{org-web-track-update-entry} or @code{org-web-track-update-files} from Elisp code. Below is an example implementation of automatic updates with email notifications scheduled for midnight.
 
 @lisp
 (defun exp/email-updated ()
@@ -246,20 +299,44 @@ and email me the updated list of items formatted as requested."
 @end lisp
 
 @node Q&A
-@unnumbered Q&A
+@chapter Q&A
 
 @menu
 * Network Certificate Issue::
 @end menu
 
 @node Network Certificate Issue
-@unnumberedsec Network Certificate Issue
+@section Network Certificate Issue
 
-Non-interactive invocation for org-web-track-update-entry may fail due to an unverified network certificate. This issue can occur when accessing a website that offers an unverified certificate, and the variable network-security-level is set to 'medium' or higher. To address the issue, accept the certificate by calling the org-web-track-update-entry command interactively up-front.
+Non-interactive invocation for @code{org-web-track-update-entry} may fail due to an unverified network certificate. This issue can occur when accessing a website that offers an unverified certificate, and the variable @code{network-security-level} is set to 'medium' or higher. To address the issue, accept the certificate by calling the @code{org-web-track-update-entry} command interactively up-front.
 
 @node License
-@unnumbered License
+@chapter License
 
 GPLv3
+
+@node Indices
+@chapter Indices
+
+@menu
+* Function index::
+* Variable index::
+* Concept index::
+@end menu
+
+@node Function index
+@section Function index
+
+@printindex fn
+
+@node Variable index
+@section Variable index
+
+@printindex vr
+
+@node Concept index
+@section Concept index
+
+@printindex cp
 
 @bye
