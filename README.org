@@ -2,6 +2,8 @@
 :ID:       6467515a-587c-4c98-95fc-b2762f64608c
 :END:
 #+title: org-web-track.el - Web data tracking framework in Org Mode
+#+language: en
+#+options: ':t toc:nil num:t
 #+export_file_name: org-web-track.texi
 #+texinfo_filename: org-web-track.info
 #+texinfo_dir_category: Emacs
@@ -23,7 +25,7 @@
 :END:
 
 With =org-web-track=:
-- Any location in the web page or any piece in the web API response can be an entry to track
+- Any location in the web page or any piece in the web API response can be an item to track
 - Users can monitor changes for the item and manage them using the facilities of Org mode
 - A set of items to track can be reviewed with their updated values in an Org column view
 - Users can extract an Org table displaying value changes and create a visual graph using Gnuplot.
