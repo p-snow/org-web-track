@@ -45,7 +45,7 @@
 (require 'org)
 (require 'org-agenda)
 (require 'org-colview)
-(provide 'org-plot)
+(require 'org-plot)
 (require 'url-http)
 (require 'request)
 (require 'enlive)
