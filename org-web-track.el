@@ -2,7 +2,7 @@
 
 ;; Author: p-snow <public@p-snow.org>
 ;; Maintainer: p-snow <public@p-snow.org>
-;; Version: 0.1.1
+;; Version: 0.1.2-dev
 ;; Package-Requires: ((emacs "29.1") (request "0.3.0") (enlive "0.0.1") (gnuplot "0.8.1"))
 ;; Homepage: https://github.com/p-snow/org-web-track
 ;; Keywords: org, agenda, web, hypermedia
