@@ -230,9 +230,10 @@ Non-interactive invocation for ~org-web-track-update-entry~ may fail due to an u
 
 GPLv3
 
-* Indices
+* Indices                                   :noexport_md:
 :PROPERTIES:
 :CUSTOM_ID: h:dd530040-de9d-4f2b-8dfd-d8b8f14c058e
+:CREATED:  [2025-06-10 Tue 18:24]
 :END:
 
 ** Function index
@@ -252,5 +253,6 @@ GPLv3
 :END:
 
 # Local Variables:
-# eval: (add-hook 'after-save-hook #' org-texinfo-export-to-info nil t)
+# eval: (add-hook 'after-save-hook #'org-texinfo-export-to-info nil t)
+# eval: (add-hook 'after-save-hook #'proj/org-export-readme-md nil t)
 # End:
